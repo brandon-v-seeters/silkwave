@@ -1,0 +1,80 @@
+<script lang="ts" module>
+	import type { WithElementRef } from 'bits-ui';
+	import type { HTMLAnchorAttributes, HTMLButtonAttributes } from 'svelte/elements';
+	import { type VariantProps, tv } from 'tailwind-variants';
+
+	export const buttonVariants = tv({
+		base: 'ring-offset-background focus-visible:ring-ring inline-flex items-center justify-center gap-2 overflow-hidden whitespace-nowrap rounded-md text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0',
+		variants: {
+			variant: {
+				default: 'bg-foreground text-background hover:bg-foreground/80 shadow-inset-top',
+				primary:
+					'bg-primary text-primary-foreground hover:bg-primary/90 shadow-inset-top-lg',
+				destructive:
+					'bg-destructive text-foreground hover:bg-destructive/90 shadow-inset-top',
+				outline:
+					'border-input bg-background hover:bg-accent hover:text-accent-foreground border',
+				secondary:
+					'bg-muted-background text-foreground hover:bg-muted/50 shadow-inset-top-sm',
+				ghost: 'hover:bg-accent hover:text-accent-foreground',
+				link: 'text-primary underline-offset-4 hover:underline',
+				gradient:
+					'bg-primary-gradient text-primary-foreground hover:brightness-110 transition-all duration-300 shadow-inset-top-lg'
+			},
+			size: {
+				default: 'h-12 px-4 py-2 rounded-lg',
+				sm: 'h-9 rounded-[8px] px-3',
+				lg: 'h-12 rounded-lg px-8',
+				icon: '!h-10 !w-10'
+			}
+		},
+		defaultVariants: {
+			variant: 'default',
+			size: 'default'
+		}
+	});
+
+	export type ButtonVariant = VariantProps<typeof buttonVariants>['variant'];
+	export type ButtonSize = VariantProps<typeof buttonVariants>['size'];
+
+	export type ButtonProps = WithElementRef<HTMLButtonAttributes> &
+		WithElementRef<HTMLAnchorAttributes> & {
+			variant?: ButtonVariant;
+			size?: ButtonSize;
+		};
+</script>
+
+<script lang="ts">
+	import { cn } from '$lib/utils/utils.js';
+
+	let {
+		class: className,
+		variant = 'default',
+		size = 'default',
+		ref = $bindable(null),
+		href = undefined,
+		type = 'button',
+		children,
+		...restProps
+	}: ButtonProps = $props();
+</script>
+
+{#if href}
+	<a
+		bind:this={ref}
+		class={cn(buttonVariants({ variant, size }), className)}
+		{href}
+		{...restProps}
+	>
+		{@render children?.()}
+	</a>
+{:else}
+	<button
+		bind:this={ref}
+		class={cn(buttonVariants({ variant, size }), className)}
+		{type}
+		{...restProps}
+	>
+		{@render children?.()}
+	</button>
+{/if}

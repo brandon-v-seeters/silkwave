@@ -9,5 +9,8 @@ export default defineConfig({
     ],
     optimizeDeps: {
         include: ['svelte-sonner'],
+    },
+    ssr: {
+        noExternal: ['sveltekit-superforms']
     }
 });

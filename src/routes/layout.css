@@ -2,6 +2,15 @@
 
 @import "tw-animate-css";
 
+@font-face {
+	font-family: 'Silk Serif';
+	font-weight: 300;
+	src: url('./assets/fonts/SilkSerif-Light.woff2') format('woff2'), url('../fonts/SilkSerif-Light.woff') format('woff'),
+		url('./assets/fonts/SilkSerif-Light.ttf') format('truetype');
+	font-display: swap;
+	font-style: normal;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 :root {
@@ -40,19 +49,19 @@
 }
 
 .dark {
-  --background: oklch(0.1548 0.0021 286.15);
+  --background: oklch(0.1744 0.0061 285.74);
   --foreground: oklch(0.9614 0.0013 286.37);
-  --card: oklch(0.2015 0.0059 285.86);
+  --card: oklch(0.2234 0.0058 285.92);
   --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
+  --popover: oklch(0.1744 0.0061 285.74);
   --popover-foreground: oklch(0.984 0.003 247.858);
   --primary: oklch(0.8372 0.0678 78.52);
   --primary-foreground: oklch(0.2373 0.0073 67.47);
   --secondary: oklch(0.279 0.041 260.031);
   --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
+  --muted: oklch(0.1744 0.0061 285.74);
   --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
+  --accent: oklch(0.2234 0.0058 285.92);
   --accent-foreground: oklch(0.984 0.003 247.858);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
@@ -63,7 +72,7 @@
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.208 0.042 265.755);
+  --sidebar: oklch(0.1744 0.0061 285.74);
   --sidebar-foreground: oklch(0.984 0.003 247.858);
   --sidebar-primary: oklch(0.488 0.243 264.376);
   --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
