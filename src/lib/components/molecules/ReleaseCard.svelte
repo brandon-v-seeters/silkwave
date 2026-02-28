@@ -5,19 +5,19 @@
 <div class="flex flex-col gap-2">
 	<a
 		href="/{release.artist?.slug}/{release.slug}"
-		class="group/image flex aspect-square cursor-pointer flex-col gap-2 overflow-hidden rounded-[4px]"
+		class="group/image flex aspect-square cursor-pointer flex-col gap-2 overflow-hidden rounded-xl"
 	>
 		<img
 			src={release.coverArt}
 			alt={release.title}
-			class="mx-auto h-full w-full rounded-[4px] object-cover transition-transform duration-300 ease-in-out group-hover/image:scale-[1.1]"
+			class="mx-auto h-full w-full rounded-xl object-cover transition-transform duration-300 ease-in-out group-hover/image:scale-[1.1]"
 		/>
 	</a>
 	<div class="flex flex-col">
-		<h3 class="cursor-pointer truncate text-lg font-medium">{release.title}</h3>
+		<h5 class="cursor-pointer truncate text-lg font-medium">{release.title}</h5>
 		<a
 			href="/{release.artist?.slug}"
-			class="group/artist cursor-pointer truncate text-base text-foreground-muted transition-colors duration-300 hover:text-primary"
+			class="group/artist cursor-pointer truncate text-sm text-foreground-muted transition-colors duration-300 hover:text-primary"
 		>
 			{release.artist?.name}
 		</a>

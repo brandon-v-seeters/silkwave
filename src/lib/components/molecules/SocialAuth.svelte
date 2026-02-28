@@ -1,8 +1,18 @@
+<script>
+	import Google from '../atoms/icon/Google.svelte';
+	import { Button } from '../ui/button';
+</script>
+
 <div class="relative {$$props.class}">
-	<div class="absolute inset-0 flex items-center">
-		<span class="w-full border-t"></span>
-	</div>
 	<div class="relative flex justify-center text-xs uppercase">
-		<span class="bg-background px-2 text-foreground-muted"> Or continue with </span>
+		<Button variant="secondary" class="py-4 rounded-full max-w-[280px] w-full justify-between">
+			<div class="flex">
+				<Google class="shrink-0" />
+			</div>
+			Continue with Google
+			<div class="flex">
+				<Google class="invisible" />
+			</div>
+		</Button>
 	</div>
 </div>

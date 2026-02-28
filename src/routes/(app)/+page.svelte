@@ -157,16 +157,12 @@
 
 		<!-- Fresh Picks Section -->
 		<div class="mb-6 sm:mb-8 md:mb-12">
-			<ReleasesGrid {releases} title="Fresh picks for you" subtitle="Based on your taste" />
+			<ReleasesGrid {releases} title="Fresh picks for you" />
 		</div>
 
 		<!-- Artists You Might Like Section -->
 		<div class="mb-6 sm:mb-8 md:mb-12">
-			<ReleasesGrid
-				{releases}
-				title="Artists you might like"
-				subtitle="Matching your favorites"
-			/>
+			<ReleasesGrid {releases} title="Artists you might like" />
 		</div>
 
 		<!-- Load More Button -->

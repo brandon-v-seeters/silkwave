@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      arangojs:
-        specifier: ^10.2.2
-        version: 10.2.2
       bits-ui:
         specifier: ^2.16.2
         version: 2.16.2(@internationalized/date@3.11.0)(@sveltejs/kit@2.53.0(@sveltejs/vite-plugin-svelte@6.2.4(svelte@5.53.2)(vite@7.3.1(@types/node@20.19.35)(jiti@2.6.1)(lightningcss@1.31.1)))(svelte@5.53.2)(typescript@5.9.3)(vite@7.3.1(@types/node@20.19.35)(jiti@2.6.1)(lightningcss@1.31.1)))(svelte@5.53.2)
@@ -674,15 +671,6 @@ packages:
     resolution: {integrity: sha512-UVJyE9MttOsBQIDKw1skb9nAwQuR5wuGD3+82K6JgJlm/Y+KI92oNsMNGZCYdDsVtRHSak0pcV5Dno5+4jh9sw==}
     engines: {node: '>=0.4.0'}
     hasBin: true
-
-  arangojs@10.2.2:
-    resolution: {integrity: sha512-3Xllq5inTGjros0mBP9NFxrIW8Di0ldtFurLdrXy5z4NDVJPyJtnwUiiGrMPY21NuVu53wUDE23YN50jnX4epw==}
-    engines: {node: '>=20'}
-    peerDependencies:
-      undici: '>=5.21.0'
-    peerDependenciesMeta:
-      undici:
-        optional: true
 
   aria-query@5.3.2:
     resolution: {integrity: sha512-COROpnaoap1E2F000S62r6A60uHZnmlvomhfyT2DlTcrY1OrBKn2UhH7qn5wTC9zMvD0AY7csdPSNwKP+7WiQw==}
@@ -1609,6 +1597,7 @@ snapshots:
   '@types/node@20.19.35':
     dependencies:
       undici-types: 6.21.0
+    optional: true
 
   '@types/trusted-types@2.0.7': {}
 
@@ -1648,10 +1637,6 @@ snapshots:
     optional: true
 
   acorn@8.16.0: {}
-
-  arangojs@10.2.2:
-    dependencies:
-      '@types/node': 20.19.35
 
   aria-query@5.3.2: {}
 
@@ -2141,7 +2126,8 @@ snapshots:
 
   typescript@5.9.3: {}
 
-  undici-types@6.21.0: {}
+  undici-types@6.21.0:
+    optional: true
 
   util-deprecate@1.0.2: {}
 

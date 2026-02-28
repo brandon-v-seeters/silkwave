@@ -6,6 +6,7 @@
 	import { toast, Toaster } from 'svelte-sonner';
 	import { page } from '$app/state';
 	import { setContext } from 'svelte';
+	import { ModeWatcher } from 'mode-watcher';
 
 	const flash = getFlash(page);
 
@@ -36,6 +37,8 @@
 		}
 	});
 </script>
+
+<ModeWatcher defaultMode="system" />
 
 <Toaster
 	toastOptions={{

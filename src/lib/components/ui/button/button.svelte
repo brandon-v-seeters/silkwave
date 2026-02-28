@@ -4,7 +4,7 @@
 	import { type VariantProps, tv } from 'tailwind-variants';
 
 	export const buttonVariants = tv({
-		base: 'ring-offset-background focus-visible:ring-ring inline-flex items-center justify-center gap-2 overflow-hidden whitespace-nowrap rounded-md text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0',
+		base: 'cursor-pointer ring-offset-background focus-visible:ring-ring inline-flex items-center justify-center gap-2 overflow-hidden whitespace-nowrap rounded-md text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 transition-all duration-300',
 		variants: {
 			variant: {
 				default: 'bg-foreground text-background hover:bg-foreground/80 shadow-inset-top',
@@ -14,8 +14,7 @@
 					'bg-destructive text-foreground hover:bg-destructive/90 shadow-inset-top',
 				outline:
 					'border-input bg-background hover:bg-accent hover:text-accent-foreground border',
-				secondary:
-					'bg-muted-background text-foreground hover:bg-muted/50 shadow-inset-top-sm',
+				secondary: 'bg-foreground/5 text-foreground hover:opacity-80 shadow-inset-top-sm',
 				ghost: 'hover:bg-accent hover:text-accent-foreground',
 				link: 'text-primary underline-offset-4 hover:underline',
 				gradient:

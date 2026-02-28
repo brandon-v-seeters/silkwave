@@ -1,7 +1,7 @@
 import { POST } from "$lib/api/Api";
 import { redirect } from "@sveltejs/kit";
 import { fail, setError, superValidate } from "sveltekit-superforms";
-import { zod } from "sveltekit-superforms/adapters";
+import { zod4 } from "sveltekit-superforms/adapters";
 import { z } from "zod";
 
 const schema = z.object({
@@ -9,7 +9,7 @@ const schema = z.object({
 });
 
 export const load = async ({ locals }) => {
-    const form = await superValidate(zod(schema));
+    const form = await superValidate(zod4(schema));
 
     const { user } = locals;
 
@@ -26,7 +26,7 @@ export const load = async ({ locals }) => {
 
 export const actions = {
     default: async ({ request, fetch }) => {
-        const form = await superValidate(request, zod(schema));
+        const form = await superValidate(request, zod4(schema));
         const { name } = form.data;
 
         if (!form.valid) {

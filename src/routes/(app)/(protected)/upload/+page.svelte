@@ -8,7 +8,7 @@
 	import Icon from '$lib/components/atoms/Icon.svelte';
 
 	// Stores
-	import * as Form from '$lib/components/ui/form/index.ts';
+	import * as Form from '$lib/components/ui/form';
 	import Input from '$lib/components/ui/input/input.svelte';
 
 	// Types
@@ -49,11 +49,13 @@
 		</p>
 		<form method="POST" use:enhance class="flex w-full max-w-sm flex-col gap-4">
 			<Form.Field {form} name="name">
-				<Form.Control let:attrs>
-					<Form.Label for="name">Artist Name</Form.Label>
-					<Input {...attrs} id="name" name="name" bind:value={$formData.name} />
-					<Form.FieldErrors />
+				<Form.Control>
+					{#snippet children({ props })}
+						<Form.Label for="name">Artist Name</Form.Label>
+						<Input {...props} id="name" name="name" bind:value={$formData.name} />
+					{/snippet}
 				</Form.Control>
+				<Form.FieldErrors />
 			</Form.Field>
 			<FormErrors {form} />
 			<Button type="submit" variant="primary" disabled={isLoading} class="w-fit">

@@ -2,9 +2,8 @@
 	import { onMount, onDestroy } from 'svelte';
 	import ReleaseCard from '$lib/components/molecules/ReleaseCard.svelte';
 	import Icon from '../atoms/Icon.svelte';
-	import { fly } from 'svelte/transition';
 
-	let { releases, title, subtitle } = $props();
+	let { releases, title, subtitle = '' } = $props();
 
 	let container: HTMLDivElement;
 	let sliderContainer: HTMLDivElement;
@@ -12,7 +11,8 @@
 	let visibleCount = $state(1);
 	let resizeObserver: ResizeObserver | null = null;
 	let cardWidth = $state(176);
-	const gap = 24; // gap-6 = 24px
+
+	const gap = 24;
 
 	function calculateVisibleCount() {
 		if (!container) return;
@@ -88,8 +88,10 @@
 <div class="relative">
 	<div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
 		<div class="min-w-0">
-			<span class="text-base text-foreground-muted sm:text-base">{subtitle}</span>
-			<h2 class="text-lg font-semibold sm:text-lg md:text-xl">{title}</h2>
+			{#if subtitle}
+				<span class="text-base text-foreground-muted sm:text-base">{subtitle}</span>
+			{/if}
+			<h3 class="text-lg font-semibold">{title}</h3>
 		</div>
 		<div class="flex flex-shrink-0 items-center justify-end gap-2">
 			<button

@@ -12,6 +12,7 @@
 	import * as Dialog from '$lib/components/ui/dialog';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import { UserRound } from '@lucide/svelte';
+	import DarkModeToggle from '$lib/components/atoms/DarkModeToggle.svelte';
 
 	// Stores
 	import { searchModalOpen } from '$lib/stores/ui';
@@ -157,6 +158,9 @@
 		>
 			<Icon icon="search" class="h-5 w-5 fill-current" />
 		</button>
+
+		<!-- Dark Mode Toggle -->
+		<DarkModeToggle />
 
 		<!-- Cart -->
 		<NavbarCart count={$cartCount} />
@@ -311,6 +315,7 @@
 	<!-- Right Side Actions -->
 	<div class="flex flex-shrink-0 items-center gap-2">
 		<Button variant="primary" size="sm" href="/upload">Upload Music</Button>
+		<DarkModeToggle />
 		<NavbarCart count={$cartCount} />
 
 		<!-- Profile Navigation Menu -->
