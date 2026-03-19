@@ -35,6 +35,9 @@
   --accent-foreground: oklch(0.208 0.042 265.755);
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.929 0.013 255.508);
+  --link: oklch(84.316% 0.1238 75.823);
+  --link-from: oklch(79.747% 0.13932 73.809);
+  --link-to: oklch(79.747% 0.13932 73.809);
   --input: oklch(0.929 0.013 255.508);
   --ring: oklch(0.704 0.04 256.788);
   --chart-1: oklch(0.646 0.222 41.116);
@@ -50,7 +53,8 @@
   --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
   --sidebar-border: oklch(0.929 0.013 255.508);
   --sidebar-ring: oklch(0.704 0.04 256.788);
-
+  
+  --text-base: 0.618rem;
   --text-base: 1rem;
   --text-lg: 1.25rem;
   --text-xl: 1.5rem;
@@ -122,6 +126,9 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-border: var(--border);
+  --color-link: var(--link);
+  --color-link-from: var(--link-from);
+  --color-link-to: var(--link-to);
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-chart-1: var(--chart-1);
@@ -138,6 +145,7 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
+  --text-sm: var(--text-sm);
   --text-base: var(--text-base);
   --text-lg: var(--text-lg);
   --text-xl: var(--text-xl);
@@ -163,15 +171,18 @@ h1, h2, h3, h4, h5 {
 }
 
 h1 {
-  font-size: var(--text-2xl);
+  font-size: clamp(1.5rem, 1.25rem + 1.5vw, 4.236rem);
+  font-family: 'Cormorant Garamond', serif;
 }
 
 h2 {
-  font-size: clamp(1.5rem, 1.25rem + 1.5vw, 2rem);
+  font-size: clamp(1.5rem, 1.25rem + 1.5vw, 2.618rem);
+  font-family: 'Cormorant Garamond', serif;
 }
 
 h3 {
-  font-size: clamp(1.25rem, 1.1rem + 1vw, 1.625rem);
+  font-size: clamp(1.25rem, 1.1rem + 1vw, 1.618rem);
+  font-family: 'Cormorant Garamond', serif;
 }
 
 h4 {
@@ -186,6 +197,4 @@ p {
   font-size: 1rem;
 }
 
-a {
-  @apply text-primary;
-}
+

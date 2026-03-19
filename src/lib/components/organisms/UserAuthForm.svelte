@@ -10,7 +10,6 @@
 	import { page } from '$app/state';
 	import { toast } from 'svelte-sonner';
 	import FormErrors from '../atoms/form/FormErrors.svelte';
-	import Link from '../atoms/Link.svelte';
 
 	let {
 		class: className,
@@ -44,12 +43,12 @@
 
 <div class={cn('grid', className)} {...restProps}>
 	<form method="POST" use:enhance>
-		<div class="grid gap-3">
-			<div class="grid gap-1">
+		<div class="grid gap-4">
+			<div class="grid">
 				<Form.Field {form} name="email">
 					<Form.Control>
 						{#snippet children({ props })}
-							<Form.Label class="sr-only">Email</Form.Label>
+							<Form.Label>Email</Form.Label>
 							<Input
 								{...props}
 								placeholder="email@example.com"
@@ -62,11 +61,11 @@
 					<Form.FieldErrors />
 				</Form.Field>
 			</div>
-			<div class="grid gap-1">
+			<div class="grid">
 				<Form.Field {form} name="password">
 					<Form.Control>
 						{#snippet children({ props })}
-							<Form.Label class="sr-only">Password</Form.Label>
+							<Form.Label>Password</Form.Label>
 							<Input
 								{...props}
 								placeholder="***"
