@@ -73,7 +73,7 @@ export const actions: Actions = {
 
 		// Check for redirectTo parameter first
 		const redirectTo = url.searchParams.get('redirectTo');
-		if (redirectTo) {
+		if (redirectTo && redirectTo.startsWith('/') && !redirectTo.startsWith('//')) {
 			flashRedirect(
 				redirectTo,
 				{ type: 'success', message: 'Welcome to SilkWave! Your account has been created.' },

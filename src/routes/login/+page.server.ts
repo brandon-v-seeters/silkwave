@@ -80,8 +80,7 @@ export const actions: Actions = {
 
 		// Check for redirectTo parameter first
 		const redirectTo = url.searchParams?.get('redirectTo');
-		console.log('got here');
-		if (redirectTo) {
+		if (redirectTo && redirectTo.startsWith('/') && !redirectTo.startsWith('//')) {
 			flashRedirect(
 				redirectTo,
 				{ type: 'success', message: 'You have successfully logged in!' },
@@ -91,7 +90,6 @@ export const actions: Actions = {
 
 		// Check if user has items in cart
 		const cartCookie = cookies?.get('cart');
-		console.log('got there');
 		let hasCartItems = false;
 		try {
 			hasCartItems = cartCookie ? JSON.parse(cartCookie).length > 0 : false;
