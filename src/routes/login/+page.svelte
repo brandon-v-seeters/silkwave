@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { Button } from '$lib/components/ui/button/index.js';
 	import Link from '$lib/components/atoms/Link.svelte';
 	import SocialAuth from '$lib/components/molecules/SocialAuth.svelte';
 	import UserAuthForm from '$lib/components/organisms/UserAuthForm.svelte';
+	import { Button } from '$lib/components/ui/button/index.js';
 
 	const redirectTo = page.data.redirectTo;
 	const signUpUrl = redirectTo
@@ -16,19 +16,24 @@
 		Sign Up
 	</Button>
 	<div class="mx-auto w-full max-w-xs">
-		<div class="flex w-full flex-col justify-center">
-			<div class="mb-6 flex flex-col text-left">
-				<h1 class="">Start selling music</h1>
-			</div>
-			<UserAuthForm />
-
-			<p class="mt-2 text-left text-sm text-foreground-muted">
-				By clicking continue, you agree to our
-				<Link href="/terms">Terms of Service</Link>
-				and
-				<Link href="/privacy">Privacy Policy</Link>
-				.
+		<div class="mb-6 flex flex-col space-y-2 text-center">
+			<h1 class="font-serif text-3xl font-extralight">Welcome back</h1>
+		</div>
+		<UserAuthForm />
+		<div class="mt-3 flex flex-col space-y-2 text-center">
+			<p class="text-center text-sm text-foreground-muted">
+				Don't have an account?
+				<Link href={signUpUrl}>Sign Up</Link>
 			</p>
 		</div>
+		<SocialAuth class="my-6" />
+
+		<p class="px-8 text-center text-sm text-foreground-muted">
+			By clicking continue, you agree to our
+			<Link href="/terms">Terms of Service</Link>
+			and
+			<Link href="/privacy">Privacy Policy</Link>
+			.
+		</p>
 	</div>
 </div>

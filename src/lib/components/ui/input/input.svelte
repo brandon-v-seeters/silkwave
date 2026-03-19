@@ -40,8 +40,8 @@
 	<input
 		bind:this={ref}
 		class={cn(
-			'h-12 bg-muted-background disabled:bg-muted-background',
-			'flex w-full rounded-xl	 border border-input px-3 py-2 text-base',
+			'h-12 bg-input disabled:bg-muted-background',
+			'flex w-full rounded-xl	  px-3 py-2 text-base',
 			'file:border-0 file:bg-transparent file:text-base file:font-medium placeholder:text-foreground-muted',
 			'focus-visible:outline-none  focus-visible:ring-1 focus-visible:ring-primary/60 disabled:cursor-not-allowed disabled:opacity-50',
 			'focus-visible:shadow-focus-primary',

@@ -22,6 +22,7 @@
 		onUpdate({ form }) {
 			if (!form.valid) {
 				toast.error(form.message);
+				return;
 			}
 
 			toast.success(form.message);

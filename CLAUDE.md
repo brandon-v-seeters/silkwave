@@ -1,0 +1,38 @@
+# Silkwave
+
+A music distribution platform for independent artists to upload, manage, and sell their releases.
+
+## Tech Stack
+- SvelteKit + Svelte 5 (runes)
+- Tailwind CSS 4 (with `@theme inline`)
+- Bits UI (headless components)
+- Superforms + Zod (form validation)
+- TypeScript
+
+## Design Context
+
+### Users
+Independent musicians and artists self-releasing their music. They come to Silkwave to upload, manage, price, and sell their releases directly to fans. They need a tool that feels empowering without being overwhelming — the interface should get out of the way and let them focus on their craft. The experience should feel like a calm, trusted partner rather than a complex dashboard.
+
+### Brand Personality
+**Minimal, calm, focused.** Silkwave is quiet confidence — premium without being flashy, sophisticated without being cold. The name itself evokes smooth, flowing movement. The interface should feel spacious and breathable, giving content room to exist.
+
+### Aesthetic Direction
+- **Visual tone:** Clean, spacious, and intentional. Generous whitespace. Let elements breathe.
+- **References:** Bandcamp (artist-first, community-driven), Patreon (creator empowerment, warm utility). The common thread: platforms that center the creator and their work.
+- **Anti-references:** Overly dense dashboards, aggressive marketing aesthetics, cluttered streaming UIs. Nothing that feels like a corporate tool or a wall of data.
+- **Theme:** Dark and light mode supported. Dark mode uses a vibrant yellow-green primary for energy; light mode stays subdued with deep indigo primary.
+- **Typography:** Satoshi (body) for modern clarity, Cormorant Garamond (headings) for editorial elegance. Fluid type scaling keeps things harmonious across viewports.
+- **Color:** OKLch color space for perceptual uniformity. Muted, sophisticated palette — not loud or saturated.
+
+### Design Principles
+
+1. **Space is a feature.** Generous margins, padding, and whitespace are not wasted — they create calm. When in doubt, add more breathing room, not more content.
+
+2. **Content first, chrome second.** The artist's music, artwork, and identity should be the visual focus. UI elements (buttons, nav, labels) should support without competing. Minimize visual noise.
+
+3. **Quiet confidence over loud decoration.** Prefer subtle depth (inset shadows, gentle transitions) over bold gradients or heavy ornamentation. The design should feel assured, not attention-seeking.
+
+4. **Progressive disclosure.** Don't show everything at once. Guide the artist through flows (like the release wizard) step by step. Complexity should be available but never forced.
+
+5. **Accessible by default.** WCAG AA compliance. Proper contrast ratios, keyboard navigation, focus states, and screen reader support are baseline requirements, not afterthoughts.

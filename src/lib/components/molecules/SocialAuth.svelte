@@ -1,18 +1,20 @@
-<script>
+<script lang="ts">
 	import Google from '../atoms/icon/Google.svelte';
 	import { Button } from '../ui/button';
+
+	let { class: className }: { class?: string } = $props();
 </script>
 
-<div class="relative {$$props.class}">
-	<div class="relative flex justify-center text-xs uppercase">
-		<Button variant="secondary" class="py-4 rounded-full max-w-[280px] w-full justify-between">
-			<div class="flex">
-				<Google class="shrink-0" />
-			</div>
+<div class="relative {className ?? ''}">
+	<div class="relative flex items-center gap-3">
+		<div class="h-px flex-1 bg-border"></div>
+		<span class="text-xs text-foreground-muted">or</span>
+		<div class="h-px flex-1 bg-border"></div>
+	</div>
+	<div class="mt-4 flex justify-center">
+		<Button variant="secondary" class="rounded-full py-4 max-w-[280px] w-full">
+			<Google class="shrink-0" />
 			Continue with Google
-			<div class="flex">
-				<Google class="invisible" />
-			</div>
 		</Button>
 	</div>
 </div>
