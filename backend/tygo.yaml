@@ -1,0 +1,6 @@
+packages:
+  - path: "github.com/brandon-v-seeters/go-silk-wave/internal/models"
+    output_path: "../silk-wave/src/lib/types/generated/models.ts"
+    type_mappings:
+      time.Time: "string"
+
