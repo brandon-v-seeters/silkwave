@@ -3,7 +3,6 @@ import { zod4 as zod } from 'sveltekit-superforms/adapters';
 import { setError, superValidate } from 'sveltekit-superforms';
 import { z } from 'zod';
 import { redirect as flashRedirect } from 'sveltekit-flash-message/server';
-import { PUBLIC_API_URL } from '$env/static/public';
 import { POST } from '$lib/api/Api.js';
 
 const schema = z.object({
@@ -46,16 +45,9 @@ export const actions: Actions = {
 		}
 
 		try {
-			const res = await fetch(`${PUBLIC_API_URL}/login`, {
-				method: 'POST',
-				body: JSON.stringify({ email, password }),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
+			const res = await POST('/login', fetch, { email, password });
 
 			const setCookie = res.headers?.get('set-cookie');
-
 			if (setCookie) {
 				const cookieMatch = setCookie.match(/session=([^;]+)/);
 				if (cookieMatch) {
@@ -69,13 +61,14 @@ export const actions: Actions = {
 				}
 			}
 		} catch (err) {
-			console.error('Login failed:', err);
 			if (isHttpError(err)) {
-				setError(form, '', err.body.message ?? 'Login failed');
-			} else {
-				setError(form, '', 'An unexpected error occurred');
+				const message =
+					err.body?.message ?? (err.status === 401 ? 'Invalid email or password' : 'Login failed');
+				setError(form, '', message);
+				return fail(err.status, { form });
 			}
-			return fail(400, { form });
+			setError(form, '', 'An unexpected error occurred');
+			return fail(500, { form });
 		}
 
 		// Check for redirectTo parameter first

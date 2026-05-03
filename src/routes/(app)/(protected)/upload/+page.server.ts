@@ -5,7 +5,7 @@ import { zod4 } from "sveltekit-superforms/adapters";
 import { z } from "zod";
 
 const schema = z.object({
-    name: z.string().min(2, { message: 'Name is required' }),
+    name: z.string().min(2, { message: 'Artist name must be at least 2 characters.' }),
 });
 
 export const load = async ({ locals }) => {
@@ -34,9 +34,12 @@ export const actions = {
         }
 
         try {
-            await POST('/register/artist-name', fetch, { name })
+            await POST('/register/artist-name', fetch, { name });
         } catch (error) {
-            return fail(400, { form });
+            const message =
+                (error as { body?: { message?: string } })?.body?.message ??
+                'Could not set your artist name. Please try again.';
+            return setError(form, 'name', message);
         }
 
         return redirect(303, '/upload');

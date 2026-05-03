@@ -4,7 +4,6 @@ import { zod4 as zod } from 'sveltekit-superforms/adapters';
 import { setError, superValidate } from 'sveltekit-superforms';
 import { z } from 'zod';
 import { redirect as flashRedirect } from 'sveltekit-flash-message/server';
-import { PUBLIC_API_URL } from '$env/static/public';
 
 const schema = z.object({
 	email: z.string().email().default(''),
@@ -40,15 +39,8 @@ export const actions: Actions = {
 		}
 
 		try {
-			const res = await fetch(`${PUBLIC_API_URL}/register`, {
-				method: 'POST',
-				body: JSON.stringify({ email, password, isArtist }),
-				headers: {
-					'Content-Type': 'application/json'
-				}
-			});
+			const res = await POST('/register', fetch, { email, password, isArtist });
 
-			// Forward the session cookie from API
 			const setCookie = res.headers.get('set-cookie');
 			if (!setCookie) return;
 
@@ -64,11 +56,11 @@ export const actions: Actions = {
 			});
 		} catch (err) {
 			if (isHttpError(err)) {
-				setError(form, '', err.body.message ?? 'Registration failed');
-			} else {
-				setError(form, '', 'An unexpected error occurred');
+				setError(form, '', err.body?.message ?? 'Registration failed');
+				return fail(err.status, { form });
 			}
-			return fail(400, { form });
+			setError(form, '', 'An unexpected error occurred');
+			return fail(500, { form });
 		}
 
 		// Check for redirectTo parameter first

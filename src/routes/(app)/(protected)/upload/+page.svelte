@@ -1,6 +1,5 @@
 <script lang="ts">
 	// Vendor
-	import { enhance } from '$app/forms';
 	import { getContext } from 'svelte';
 	import { superForm } from 'sveltekit-superforms';
 
@@ -21,9 +20,7 @@
 	const user = $derived(userCtx.current);
 
 	const form = superForm(page.data.form);
-	const { form: formData } = form;
-
-	let isLoading = $state(false);
+	const { form: formData, enhance, delayed } = form;
 </script>
 
 {#snippet btn(href: string, title: string, icon: string)}
@@ -51,15 +48,22 @@
 			<Form.Field {form} name="name">
 				<Form.Control>
 					{#snippet children({ props })}
-						<Form.Label for="name">Artist Name</Form.Label>
-						<Input {...props} id="name" name="name" bind:value={$formData.name} />
+						<Form.Label>Artist Name</Form.Label>
+						<Input
+							{...props}
+							placeholder="Your artist name"
+							autocomplete="off"
+							autocapitalize="words"
+							bind:value={$formData.name}
+							disabled={$delayed}
+						/>
 					{/snippet}
 				</Form.Control>
 				<Form.FieldErrors />
 			</Form.Field>
 			<FormErrors {form} />
-			<Button type="submit" variant="primary" disabled={isLoading} class="w-fit">
-				{#if isLoading}
+			<Button type="submit" variant="primary" disabled={$delayed} class="w-fit">
+				{#if $delayed}
 					<Icon icon="loader-2" class="mr-2 h-4 w-4 animate-spin" />
 				{/if}
 				Set my Artist Name
