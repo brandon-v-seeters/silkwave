@@ -1,0 +1,28 @@
+# Docker Compose configuration for Silk Wave project (OrbStack compatible)
+# Equivalent to podman-pod.yml - runs ArangoDB with persistent volumes
+
+services:
+  arangodb:
+    image: arangodb:3.11.14
+    container_name: arangodb
+    ports:
+      - "8529:8529"
+    environment:
+      - ARANGO_ROOT_PASSWORD=${ARANGO_ROOT_PASSWORD}
+      - ARANGO_NO_AUTH=0
+    volumes:
+      - arangodb_data:/var/lib/arangodb3
+      - arangodb_apps:/var/lib/arangodb3-apps
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: "1"
+        reservations:
+          memory: 512M
+          cpus: "0.25"
+
+volumes:
+  arangodb_data:
+  arangodb_apps:
