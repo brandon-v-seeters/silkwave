@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm /mnt/c/Users/brand/.claude/skills/skills)",
+      "Bash(rmdir /root/.claude/skills)",
+      "Bash(ln -s /mnt/c/Users/brand/.claude/skills /root/.claude/skills)",
+      "Read(//mnt/c/Users/brand/.claude/skills/**)"
+    ]
+  }
+}
