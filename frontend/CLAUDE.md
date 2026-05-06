@@ -11,6 +11,9 @@ A music distribution platform for independent artists to upload, manage, and sel
 
 ## Design Context
 
+### Inspiration
+There is a folder `./inspiration` that should always be considered when creating new mock-ups or new styles (designs). 
+
 ### Users
 Independent musicians and artists self-releasing their music. They come to Silkwave to upload, manage, price, and sell their releases directly to fans. They need a tool that feels empowering without being overwhelming — the interface should get out of the way and let them focus on their craft. The experience should feel like a calm, trusted partner rather than a complex dashboard.
 
