@@ -1,16 +1,29 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { page } from '$app/stores';
-	import type { Release } from '$lib/types/generated/models';
+	import { page } from '$app/state';
+	import type { Artist, Release } from '$lib/types/generated/models';
 	import Icon from '$lib/components/atoms/Icon.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
 
-	type ReleaseWithArtist = Release & { artist?: { name: string; slug: string } };
+	type DiscoverRelease = Release & {
+		artist?: Pick<Artist, 'name' | 'slug'>;
+		coverArt?: string | null;
+		type?: string;
+	};
 
-	let releases = $state<ReleaseWithArtist[]>([]);
+	type ReleasesPayload = {
+		releases?: DiscoverRelease[];
+	};
+
+	type ApiEnvelope<T> = {
+		data?: T;
+		error?: string | { message?: string };
+	};
+
+	let releases = $state<DiscoverRelease[]>([]);
 	let isLoading = $state(true);
 	let error = $state<string | null>(null);
-	let searchQuery = $state($page.url.searchParams.get('q') || '');
+	let searchQuery = $state(page.url.searchParams.get('q') || '');
 
 	async function loadReleases(query: string = '') {
 		isLoading = true;
@@ -21,12 +34,13 @@
 				? `/api/releases?q=${encodeURIComponent(query)}`
 				: '/api/releases?limit=24';
 			const response = await fetch(url);
-			const data = await response.json();
+			const data = (await response.json()) as ApiEnvelope<ReleasesPayload> &
+				ReleasesPayload;
 
 			if (data.error) {
-				error = data.error;
+				error = typeof data.error === 'string' ? data.error : 'Failed to load releases';
 			} else {
-				releases = data.releases || [];
+				releases = data.data?.releases ?? data.releases ?? [];
 			}
 		} catch (e) {
 			error = 'Failed to load releases';
@@ -60,12 +74,38 @@
 		}
 	}
 
-	function formatDate(timestamp: number) {
-		return new Date(timestamp).toLocaleDateString('en-US', {
+	function formatDate(value: string | number | undefined) {
+		if (!value) return 'Unknown';
+
+		const date = new Date(value);
+		if (Number.isNaN(date.getTime())) return 'Unknown';
+
+		return date.toLocaleDateString('en-US', {
 			year: 'numeric',
 			month: 'long',
 			day: 'numeric'
 		});
+	}
+
+	function releaseHref(release: DiscoverRelease) {
+		if (!release.artist?.slug) return '#';
+
+		return `/artist/${release.artist.slug}/releases/${release.slug}`;
+	}
+
+	function coverArtFor(release: DiscoverRelease) {
+		return (
+			release.coverArt ||
+			release.cover ||
+			release.assets?.coverArt?.medium ||
+			release.assets?.coverArt?.original ||
+			release.assets?.coverArt?.thumbnail ||
+			null
+		);
+	}
+
+	function releaseKind(release: DiscoverRelease) {
+		return release.type ?? release.releaseType;
 	}
 </script>
 
@@ -121,15 +161,16 @@
 		<!-- Releases Grid -->
 		<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 			{#each releases as release}
+				{@const coverArt = coverArtFor(release)}
 				<a
-					href="/{release.artist?.slug}/{release.slug}"
+					href={releaseHref(release)}
 					class="group rounded-lg border border-border bg-card p-4 transition-all hover:border-primary hover:shadow-lg"
 				>
 					<!-- Cover Art Placeholder -->
 					<div class="bg-muted mb-4 aspect-square w-full overflow-hidden rounded-md">
-						{#if release.coverArt}
+						{#if coverArt}
 							<img
-								src={release.coverArt}
+								src={coverArt}
 								alt={release.title}
 								class="h-full w-full object-cover transition-transform group-hover:scale-105"
 							/>
@@ -154,10 +195,10 @@
 						{/if}
 						<div class="mt-2 flex items-center gap-2 text-xs text-foreground-muted">
 							<span class="bg-muted rounded-full px-2 py-1">
-								{release.type}
+								{releaseKind(release)}
 							</span>
 							<span>•</span>
-							<span>{formatDate(release.releaseDate)}</span>
+							<span>{formatDate(release.publishAt)}</span>
 						</div>
 					</div>
 				</a>

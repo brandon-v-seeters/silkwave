@@ -13,7 +13,7 @@ export type ReleasePricing = {
 
 // Services
 import { releaseUploadService } from '$lib/services/release-upload.svelte';
-import type { Release } from '$lib/types/generated';
+import type { ReleaseWithTracks } from '$lib/types/generated';
 
 // Helpers
 function generateId(): string {
@@ -28,6 +28,12 @@ function createTrackFromFile(file: File): WizardTrack {
 		duration: '0:00',
 		order: 0
 	};
+}
+
+function formatTrackDuration(seconds: number): string {
+	const minutes = Math.floor(seconds / 60);
+	const remainingSeconds = seconds % 60;
+	return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 }
 
 const WIZARD_KEY = Symbol('release-wizard');
@@ -103,13 +109,15 @@ export function createWizardContext() {
 	const isStep3Valid = $derived(stepValidations[2]);
 	const isStep4Valid = $derived(stepValidations[3]);
 
-	function initWizard(draft: Release) {
+	function initWizard(draft: ReleaseWithTracks) {
 		releaseTitle = draft.title;
 		genres = draft.genres || [];
-		tracks = draft.tracks.map((track) => ({
+		tracks = draft.tracks.map((track, index) => ({
+			id: track.id || generateId(),
 			title: track.title,
-			file: new File([], track.fileName),
-			duration: track.duration
+			file: new File([], track.files.original.path.split('/').pop() || track.title),
+			duration: track.durationDisplay || formatTrackDuration(track.duration),
+			order: track.order || index + 1
 		}));
 	}
 	// Navigation

@@ -1,7 +1,8 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import Icon from '$lib/components/atoms/Icon.svelte';
-	import { ProjectCoverArt, ProjectTrackList } from '$lib/components/organisms/release-editor';
+	import { ReleaseCoverArt, ReleaseTrackList } from '$lib/components/organisms/release-editor';
 	import { createWizardContext } from '$lib/components/organisms/release-wizard';
 	import Button from '$lib/components/ui/button/button.svelte';
 
@@ -9,9 +10,11 @@
 
 	const { data } = $props();
 
-	if (data.draft) {
-		wizard.initWizard(data.draft);
-	}
+	onMount(() => {
+		if (data.draft) {
+			wizard.initWizard(data.draft);
+		}
+	});
 
 	let totalDuration = $derived(() => {
 		let totalSeconds = 0;
@@ -57,11 +60,11 @@
 		</div>
 	</div>
 
-	<!-- Main content: two-column layout -->
-	<div class="flex flex-col items-center gap-4 px-6 sm:gap-12 sm:px-16 sm:pt-0">
-		<!-- Left column: Cover art (sticky on desktop) -->
+	<div
+		class="flex flex-col w-fit mx-auto lg:flex-row items-center lg:items-start gap-4 px-6 sm:gap-12 sm:px-16 sm:pt-0"
+	>
 		<div class="flex w-full flex-col items-center gap-6 sm:w-[320px] lg:w-[405px]">
-			<ProjectCoverArt
+			<ReleaseCoverArt
 				bind:preview={wizard.coverArtPreview}
 				onchange={(file) => wizard.setCoverArt(file)}
 			/>
@@ -77,7 +80,7 @@
 							type="text"
 							placeholder="untitled project"
 							bind:value={wizard.releaseTitle}
-							class="w-full bg-transparent font-serif text-3xl font-medium tracking-tight text-foreground placeholder:text-foreground-muted/40 focus:outline-none sm:text-4xl"
+							class="w-full bg-transparent text-3xl font-medium tracking-tight text-foreground placeholder:text-foreground-muted/40 focus:outline-none sm:text-4xl"
 						/>
 						<div class="mt-1 flex items-center gap-1.5 text-sm text-foreground-muted">
 							{#if wizard.tracks.length > 0}
@@ -107,7 +110,7 @@
 				</div>
 
 				<!-- Track list with add button -->
-				<ProjectTrackList
+				<ReleaseTrackList
 					tracks={wizard.tracks}
 					onfiles={(files) => wizard.addBulkTracks(files)}
 					onTitleChange={(id, title) => wizard.updateTrackTitle(id, title)}

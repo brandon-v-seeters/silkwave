@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { tick } from 'svelte';
 	import Icon from '$lib/components/atoms/Icon.svelte';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import type { WizardTrack } from '$lib/types/WizardTrack';
@@ -21,7 +22,12 @@
 	function startEdit() {
 		editValue = track.title;
 		editing = true;
-		queueMicrotask(() => inputEl?.select());
+
+		setTimeout(async () => {
+			await tick();
+			inputEl?.focus();
+			inputEl?.select();
+		});
 	}
 
 	function confirmEdit() {
@@ -45,12 +51,11 @@
 
 	<div class="flex w-full min-w-0 flex-col">
 		{#if editing}
-			<!-- svelte-ignore a11y_autofocus -->
 			<input
 				bind:this={inputEl}
+				type="text"
 				class="mr-3 w-full rounded-lg bg-transparent px-2 py-1 text-sm font-semibold text-foreground outline-none ring-1 ring-border"
 				bind:value={editValue}
-				autofocus
 				onkeydown={(e) => {
 					if (e.key === 'Enter') confirmEdit();
 					if (e.key === 'Escape') cancelEdit();
@@ -58,7 +63,7 @@
 				onblur={confirmEdit}
 			/>
 		{:else}
-			<h3 class="line-clamp-1 text-left text-sm font-semibold break-all">{track.title}</h3>
+			<h5 class="line-clamp-1 text-left text-sm font-semibold break-all">{track.title}</h5>
 		{/if}
 		<div class="line-clamp-1 text-left text-xs break-all text-foreground-muted">
 			{track.duration || '0:00'}
@@ -68,24 +73,24 @@
 	<div class="ml-3 flex shrink-0 items-center">
 		<DropdownMenu.Root>
 			<DropdownMenu.Trigger
-				class="flex h-8 w-8 items-center justify-center rounded-md text-foreground-muted opacity-0 transition-all duration-150 hover:bg-foreground/5 hover:text-foreground focus-visible:opacity-100 data-[state=open]:opacity-100 group-hover/row:opacity-100 sm:opacity-0"
+				class="flex h-8 w-8 items-center justify-center rounded-md text-foreground-muted opacity-100 transition-all duration-150 hover:bg-foreground/5 hover:text-foreground focus-visible:opacity-100 data-[state=open]:opacity-100 sm:opacity-0 sm:group-hover/row:opacity-100"
 				aria-label="Track options"
 			>
 				<Icon icon="more-horiz" variant="line" class="h-4 w-4 fill-current" />
 			</DropdownMenu.Trigger>
 			<DropdownMenu.Content align="end" class="w-44">
-				<DropdownMenu.Item onclick={startEdit}>
+				<DropdownMenu.Item onSelect={startEdit}>
 					<Icon icon="edit" variant="line" class="h-4 w-4 fill-current" />
 					<span>Rename</span>
 				</DropdownMenu.Item>
 				{#if onMove}
-					<DropdownMenu.Item disabled={index === 0} onclick={() => onMove?.('up')}>
+					<DropdownMenu.Item disabled={index === 0} onSelect={() => onMove?.('up')}>
 						<Icon icon="chevron-up" variant="line" class="h-4 w-4 fill-current" />
 						<span>Move up</span>
 					</DropdownMenu.Item>
 					<DropdownMenu.Item
 						disabled={index === total - 1}
-						onclick={() => onMove?.('down')}
+						onSelect={() => onMove?.('down')}
 					>
 						<Icon icon="chevron-down" variant="line" class="h-4 w-4 fill-current" />
 						<span>Move down</span>
@@ -94,7 +99,7 @@
 				<DropdownMenu.Separator />
 				<DropdownMenu.Item
 					class="text-destructive data-highlighted:bg-destructive/10 data-highlighted:text-destructive"
-					onclick={onRemove}
+					onSelect={onRemove}
 				>
 					<Icon icon="trash" variant="line" class="h-4 w-4 fill-current" />
 					<span>Remove</span>

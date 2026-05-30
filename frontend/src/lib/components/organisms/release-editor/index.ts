@@ -1,3 +1,3 @@
-export { default as ProjectCoverArt } from './ProjectCoverArt.svelte';
-export { default as ProjectTrackItem } from './ProjectTrackItem.svelte';
-export { default as ProjectTrackList } from './ProjectTrackList.svelte';
+export { default as ReleaseCoverArt } from './ReleaseCoverArt.svelte';
+export { default as ReleaseTrackItem } from './ReleaseTrackItem.svelte';
+export { default as ReleaseTrackList } from './ReleaseTrackList.svelte';

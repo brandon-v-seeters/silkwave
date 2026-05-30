@@ -108,8 +108,8 @@ go build -o bin/migrate ./cmd/migrate
 | `POST` | `/api/register`            | User registration       |
 | `POST` | `/api/logout`              | User logout             |
 | `GET`  | `/api/releases`            | List published releases |
-| `GET`  | `/api/releases/:slug`      | Get release by slug     |
 | `GET`  | `/api/artists/:artistSlug` | Get artist by slug      |
+| `GET`  | `/api/artists/:artistSlug/releases/:releaseSlug` | Get release by Artist and Release slug |
 
 ### Protected Routes (require JWT)
 
@@ -127,10 +127,11 @@ go build -o bin/migrate ./cmd/migrate
 | Method   | Endpoint                               | Description          |
 | -------- | -------------------------------------- | -------------------- |
 | `POST`   | `/api/releases/draft`                  | Create draft release |
-| `POST`   | `/api/releases/:releaseHash/confirm`   | Confirm uploads      |
-| `POST`   | `/api/releases/:releaseHash/publish`   | Publish release      |
-| `POST`   | `/api/releases/:releaseHash/unpublish` | Unpublish release    |
-| `DELETE` | `/api/releases/:releaseHash`           | Delete release       |
+| `POST`   | `/api/releases/:releaseId/confirm`     | Confirm uploads      |
+| `POST`   | `/api/releases/:releaseId/publish`     | Publish release      |
+| `POST`   | `/api/releases/:releaseId/archive`     | Archive release      |
+| `DELETE` | `/api/releases/:releaseId`             | Delete release       |
+| `POST`   | `/api/upload/avatar`                   | Create avatar upload URL |
 
 ## Database Schema
 
@@ -139,19 +140,17 @@ Collections managed by the migration system:
 - **Users** — User accounts
 - **Artists** — Artist profiles
 - **UsersArtists** — Edge collection linking users to artists
-- **Releases** — Published releases
-- **ReleaseDrafts** — Draft releases pending publish
-- **Tracks** — Published tracks
-- **TrackDrafts** — Draft tracks
-- **Subscriptions** — Artist subscription tiers
-- **Subscribers** — User subscriptions
+- **Releases** — Releases across the Draft, Published, and Archived lifecycle states
+- **Tracks** — Tracks belonging to a Release
+- **Subscriptions** — Artist paid support levels
+- **Subscribers** — User subscription relationships
 
 ## Storage Structure
 
 Content is stored in R2 with the following structure:
 
 ```
-artist_content/{artistKey}/{releaseHash}/
+artist_content/{artistKey}/releases/{releaseId}/
 ├── draft/                    # Unpublished content
 │   ├── cover.jpg
 │   ├── wavs/

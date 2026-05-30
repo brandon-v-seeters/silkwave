@@ -1,5 +1,6 @@
 import { toast } from 'svelte-sonner';
 import type { WizardTrack, UploadProgress, UploadStatus } from '$lib/types/WizardTrack';
+import { readApiData } from '$lib/api/envelope';
 import type { CreateDraftRequest, CreateDraftResponse } from '$lib/types/generated/models';
 import { POST } from '$lib/api/Api';
 
@@ -7,7 +8,7 @@ import { POST } from '$lib/api/Api';
 const createReleaseUploadService = () => {
     // Reactive state using Svelte 5 runes
     let status = $state<UploadStatus>('idle');
-    let releaseHash = $state<string | null>(null);
+    let releaseId = $state<string | null>(null);
     let releaseKey = $state<string | null>(null);
     let coverArtProgress = $state<UploadProgress | null>(null);
     let trackProgress = $state<UploadProgress[]>([]);
@@ -36,7 +37,7 @@ const createReleaseUploadService = () => {
     // Reset store to initial state
     const reset = () => {
         status = 'idle';
-        releaseHash = null;
+        releaseId = null;
         releaseKey = null;
         coverArtProgress = null;
         trackProgress = [];
@@ -104,7 +105,12 @@ const createReleaseUploadService = () => {
         };
 
         try {
-            return await POST('/releases/draft', undefined, request) as CreateDraftResponse;
+            const response = await POST('/releases/draft', undefined, request);
+            const draft = await readApiData<CreateDraftResponse>(response);
+            if (!draft) {
+                throw new Error('Release draft response was empty');
+            }
+            return draft;
         } catch (err) {
             console.error('Failed to create release draft:', err);
             toast.error(err instanceof Error ? err.message : 'Failed to create release draft');
@@ -114,13 +120,14 @@ const createReleaseUploadService = () => {
 
     // Confirm uploads to backend
     const confirmUploads = async (
-        hash: string,
+        id: string,
         uploadedTracks: { trackId: string; storagePath: string }[],
         coverArtPath: string | null
     ): Promise<boolean> => {
         try {
-            const response = await POST(`/releases/${hash}/confirm`, undefined, { tracks: uploadedTracks, coverArtPath });
-            return response.success;
+            const response = await POST(`/releases/${id}/confirm`, undefined, { tracks: uploadedTracks, coverArtPath });
+            const body = await readApiData<{ releaseId?: string }>(response);
+            return body?.releaseId === id;
         } catch (err) {
             console.error('Failed to confirm uploads:', err);
             toast.error('Failed to confirm uploads');
@@ -138,8 +145,8 @@ const createReleaseUploadService = () => {
         if (!draftResponse) return { success: false, releaseKey: null };
 
         // Initialize progress tracking
-        trackProgress = draftResponse.presignedUrls.tracks.map((t: { hash: string; fileName: string }) => ({
-            trackId: t.hash,
+        trackProgress = draftResponse.presignedUrls.tracks.map((t) => ({
+            trackId: t.id,
             fileName: t.fileName,
             progress: 0,
             status: 'pending' as const
@@ -174,7 +181,7 @@ const createReleaseUploadService = () => {
             ).then((success) => ({
                 id: 'cover-art',
                 success,
-                storagePath: `artist_content/${draftResponse.artistKey}/releases/${draftResponse.releaseHash}/draft/cover.${coverArt.name.split('.').pop()}`
+                storagePath: `artist_content/${draftResponse.artistKey}/releases/${draftResponse.releaseId}/draft/cover.${coverArt.name.split('.').pop()}`
             }));
 
             uploadPromises.push(coverPromise);
@@ -183,24 +190,24 @@ const createReleaseUploadService = () => {
         // Upload tracks
         for (const trackUrl of draftResponse.presignedUrls.tracks) {
             const track = tracks.find(
-                (t) => t.file?.name === trackUrl.fileName || t.id === trackUrl.hash
+                (t) => t.file?.name === trackUrl.fileName || t.id === trackUrl.id
             );
             if (!track?.file) continue;
 
             const trackFile = track.file;
             const trackPromise = uploadFileToR2(trackFile, trackUrl.presignedUrl, (progress) => {
                 trackProgress = trackProgress.map((tp) =>
-                    tp.trackId === trackUrl.hash
+                    tp.trackId === trackUrl.id
                         ? { ...tp, progress, status: progress === 100 ? 'completed' : 'uploading' }
                         : tp
                 );
             }).then((success) => ({
-                id: trackUrl.hash,
+                id: trackUrl.id,
                 success,
                 storagePath: trackUrl.storagePath
             })).catch((err) => {
                 console.error('Failed to upload track:', err);
-                return { id: trackUrl.hash, success: false, storagePath: trackUrl.storagePath };
+                return { id: trackUrl.id, success: false, storagePath: trackUrl.storagePath };
             });
 
             uploadPromises.push(trackPromise);
@@ -232,7 +239,7 @@ const createReleaseUploadService = () => {
         const coverArtResult = results.find((r) => r.id === 'cover-art');
 
         const confirmed = await confirmUploads(
-            draftResponse.releaseHash,
+            draftResponse.releaseId,
             uploadedTracks,
             coverArtResult?.storagePath || null
         );
@@ -282,7 +289,7 @@ const createReleaseUploadService = () => {
 
             // Store release identifiers in memory (persists even if upload fails)
             releaseKey = draftResponse.releaseKey;
-            releaseHash = draftResponse.releaseHash;
+            releaseId = draftResponse.releaseId;
 
             // Upload files and confirm
             status = 'uploading';
@@ -303,8 +310,8 @@ const createReleaseUploadService = () => {
         get status() {
             return status;
         },
-        get releaseHash() {
-            return releaseHash;
+        get releaseId() {
+            return releaseId;
         },
         get releaseKey() {
             return releaseKey;

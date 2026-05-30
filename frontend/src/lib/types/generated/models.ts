@@ -7,11 +7,35 @@
  * Artist represents an artist in the system
  */
 export interface Artist extends DocumentMeta {
+  id: string;
   name: string;
   slug: string;
   bio: string;
   createdAt: string;
   publishedAt?: string;
+}
+/**
+ * ArtistFollower is the public-safe user shape shown on an Artist profile.
+ */
+export interface ArtistFollower {
+  username: string;
+  followedAt: string;
+}
+/**
+ * ArtistProfile represents an Artist with public relationship counts.
+ */
+export interface ArtistProfile extends Artist {
+  followerCount: number /* int */;
+  subscriberCount: number /* int */;
+  followers: ArtistFollower[];
+}
+/**
+ * FollowArtistResponse represents the current Follow state after mutation.
+ */
+export interface FollowArtistResponse {
+  artistId: string;
+  following: boolean;
+  followerCount: number /* int */;
 }
 /**
  * RegisterArtistNameRequest represents the request to create an artist name
@@ -63,7 +87,12 @@ export interface Edge {
  */
 export interface UserArtist {
   Edge: Edge;
-  role?: string; // e.g., "owner", "manager", "member"
+}
+/**
+ * Follow represents the free User-to-Artist follow relationship.
+ */
+export interface Follow {
+  Edge: Edge;
 }
 
 //////////
@@ -88,12 +117,12 @@ export interface CreateReleaseRequest {
   slug: string;
   artistKey: string;
   description?: string;
-  releaseDate: string;
+  publishAt: string;
   cover?: string;
   trackCount?: number /* int */;
-  hash?: string;
+  id?: string;
   genres?: string[];
-  songs?: Song[];
+  tracks?: Track[];
 }
 /**
  * UpdateReleaseRequest represents the request body for updating a release
@@ -103,22 +132,20 @@ export interface UpdateReleaseRequest {
   slug?: string;
   artistKey?: string;
   description?: string;
-  releaseDate?: string;
+  publishAt?: string;
   cover?: string;
   trackCount?: number /* int */;
   genres?: string[];
-  songs?: Song[];
+  tracks?: Track[];
 }
 export interface ConfirmDraftReleaseRequest {
   artistKey: string;
-  releaseHash: string;
+  releaseId: string;
 }
 export type ReleaseStatus = string;
 export const ReleaseStatusDraft: ReleaseStatus = "draft";
-export const ReleaseStatusScheduled: ReleaseStatus = "scheduled";
 export const ReleaseStatusPublished: ReleaseStatus = "published";
 export const ReleaseStatusArchived: ReleaseStatus = "archived";
-export const ReleaseStatusDeleted: ReleaseStatus = "deleted";
 export type LicenseType = string;
 export const LicenseAllRightsReserved: LicenseType = "all_rights_reserved";
 export const LicenseCreativeCommons: LicenseType = "creative_commons";
@@ -171,12 +198,12 @@ export interface CoverArtAsset {
 }
 export interface ReleaseAssets {
   coverArt?: CoverArtAsset;
-  basePath: string; // artist_content/{artistKey}/{hash}/
+  basePath: string; // artist_content/{artistKey}/releases/{id}/
 }
 export interface ReleaseSchedule {
   createdAt: string;
   updatedAt: string;
-  releaseDate?: string;
+  publishAt?: string;
   publishedAt?: string;
   preOrderDate?: string;
 }
@@ -184,8 +211,8 @@ export interface Release extends DocumentMeta {
   /**
    * Identifiers
    */
-  hash: string; // Public URL identifier
-  slug: string; // SEO-friendly URL
+  id: string; // Stable external UUID for authenticated API paths.
+  slug: string; // SEO-friendly public URL slug.
   /**
    * Core info
    */
@@ -224,11 +251,10 @@ export interface Release extends DocumentMeta {
   isFeatured: boolean;
   downloadEnabled: boolean;
   streamingEnabled: boolean;
-  releaseDate: string;
+  pending?: PendingReleaseEdit;
+  publishAt: string;
   cover?: string;
   genres?: string[];
-  published: boolean;
-  isUploaded: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -253,7 +279,7 @@ export interface CoverArtRequest {
   fileSize: number /* int64 */;
 }
 export interface CreateDraftResponse {
-  releaseHash: string;
+  releaseId: string;
   releaseKey: string;
   artistKey: string;
   presignedUrls: PresignedUrlsDTO;
@@ -263,7 +289,7 @@ export interface PresignedUrlsDTO {
   tracks: TrackUrlDTO[];
 }
 export interface TrackUrlDTO {
-  hash: string;
+  id: string;
   fileName: string;
   presignedUrl: string;
   storagePath: string;
@@ -283,6 +309,10 @@ export interface ReleaseWithArtist {
   Release: Release;
   artist?: Artist;
 }
+export interface PublicRelease extends Release {
+  artist?: Artist;
+  tracks: PublicTrack[];
+}
 /**
  * ReleasesResponse represents the response for listing releases
  */
@@ -290,6 +320,49 @@ export interface ReleasesResponse {
   releases: ReleaseWithArtist[];
   limit: number /* int */;
   offset: number /* int */;
+}
+export interface ReleaseWithTracks extends Release {
+  tracks: Track[];
+}
+
+//////////
+// source: release_pending.go
+
+export interface PendingReleaseEdit {
+  title?: string;
+  slug?: string;
+  description?: string;
+  releaseType?: ReleaseType;
+  pricing?: ReleasePricing;
+  metadata?: ReleaseMetadata;
+  credits?: ReleaseCredits;
+  assets?: ReleaseAssets;
+  schedule?: ReleaseSchedule;
+  publishAt?: string;
+  cover?: string;
+  license?: LicenseType;
+  customLicense?: string;
+  isExplicit?: boolean;
+  downloadEnabled?: boolean;
+  streamingEnabled?: boolean;
+  trackCount?: number /* int */;
+  trackList?: string[];
+  tracks?: PendingTrackEdit[];
+}
+export interface PendingTrackEdit {
+  _key: string;
+  title?: string;
+  order?: number /* int */;
+  duration?: number /* int */;
+  durationDisplay?: string;
+  metadata?: TrackMetadata;
+  featuredArtists?: FeaturedArtist[];
+  writers?: string[];
+  isExplicit?: boolean;
+  streamingEnabled?: boolean;
+  downloadEnabled?: boolean;
+  files?: TrackFiles;
+  remove?: boolean;
 }
 
 //////////
@@ -311,25 +384,13 @@ export interface UpdatePasswordRequest {
 // source: subscription.go
 
 /**
- * SubscriptionTier represents the tier of a subscription
- */
-export type SubscriptionTier = string;
-export const SubscriptionTierFree: SubscriptionTier = "free";
-export const SubscriptionTierPaid: SubscriptionTier = "paid";
-/**
  * SubscriptionStatus represents the status of a subscriber
  */
 export type SubscriptionStatus = string;
 export const SubscriptionStatusActive: SubscriptionStatus = "active";
-export const SubscriptionStatusCancelled: SubscriptionStatus = "cancelled";
-export const SubscriptionStatusPaused: SubscriptionStatus = "paused";
-export const SubscriptionStatusTrialing: SubscriptionStatus = "trialing";
-export const SubscriptionStatusIncomplete: SubscriptionStatus = "incomplete";
-export const SubscriptionStatusIncompleteExpired: SubscriptionStatus = "incomplete_expired";
-export const SubscriptionStatusPastDue: SubscriptionStatus = "past_due";
-export const SubscriptionStatusUnpaid: SubscriptionStatus = "unpaid";
+export const SubscriptionStatusInactive: SubscriptionStatus = "inactive";
 /**
- * Subscription represents a subscription plan offered by an artist
+ * Subscription represents a paid support level offered by an artist
  */
 export interface Subscription extends DocumentMeta {
   artistKey: string;
@@ -337,7 +398,7 @@ export interface Subscription extends DocumentMeta {
   description: string;
   price: number /* float64 */;
   currency: string;
-  tier: SubscriptionTier;
+  subscriberDiscountPercent?: number /* float64 */;
   createdAt: string;
 }
 /**
@@ -349,7 +410,7 @@ export interface CreateSubscriptionRequest {
   description: string;
   price: number /* float64 */;
   currency: string;
-  tier: SubscriptionTier;
+  subscriberDiscountPercent?: number /* float64 */;
 }
 /**
  * UpdateSubscriptionRequest represents the request body for updating a subscription
@@ -359,7 +420,7 @@ export interface UpdateSubscriptionRequest {
   description?: string;
   price?: number /* float64 */;
   currency?: string;
-  tier?: SubscriptionTier;
+  subscriberDiscountPercent?: number /* float64 */;
 }
 /**
  * Subscriber represents a user's subscription to an artist's plan
@@ -395,23 +456,15 @@ export interface ClientSubscriber extends DocumentMeta {
   subscriberKey: string;
   subscriptionKey: string;
   subscriptionName: string;
+  subscriptionPrice: number /* float64 */;
+  subscriptionCurrency: string;
+  subscriberDiscountPercent?: number /* float64 */;
   status: SubscriptionStatus;
-  tier: SubscriptionTier;
 }
 
 //////////
 // source: track.go
 
-export interface Song extends DocumentMeta {
-  title: string;
-  slug: string;
-  artistKey: string;
-  albumKey: string;
-  description?: string;
-  duration: number /* int */;
-  published: boolean;
-  createdAt: string;
-}
 export interface OriginalFile {
   path: string;
   format: string;
@@ -446,11 +499,11 @@ export interface Track extends DocumentMeta {
   /**
    * Identifiers
    */
-  hash: string;
+  id: string;
   /**
    * Relations
    */
-  albumKey: string;
+  releaseKey: string;
   /**
    * Core info
    */
@@ -492,6 +545,9 @@ export interface Track extends DocumentMeta {
    */
   playCount: number /* int */;
   downloadCount: number /* int */;
+}
+export interface PublicTrack extends Track {
+  streamUrl?: string;
 }
 
 //////////
@@ -602,4 +658,13 @@ export interface UpdateUserRequest {
   username?: string;
   email?: string;
   settings?: UserSettings;
+}
+export interface CreateAvatarUploadRequest {
+  fileName: string;
+  fileType: string;
+  fileSize: number /* int64 */;
+}
+export interface CreateAvatarUploadResponse {
+  presignedUrl: string;
+  storagePath: string;
 }

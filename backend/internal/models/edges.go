@@ -15,5 +15,9 @@ type Edge struct {
 // UserArtist represents the edge between a User and an Artist they manage
 type UserArtist struct {
 	Edge
-	Role string `json:"role,omitempty"` // e.g., "owner", "manager", "member"
+}
+
+// Follow represents the free User-to-Artist follow relationship.
+type Follow struct {
+	Edge
 }

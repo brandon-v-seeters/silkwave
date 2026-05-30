@@ -24,7 +24,7 @@ const config: Config = {
 			},
 			fontFamily: {
 				sans: ['Inter', ...fontFamily.sans],
-				serif: 'Silk Serif'
+				serif: ['Cormorant Garamond', ...fontFamily.serif]
 			},
 			backgroundImage: {
 				'primary-gradient': 'var(--primary-gradient)'

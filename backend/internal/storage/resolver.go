@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"fmt"
 	"path"
 	"path/filepath"
 	"strings"
@@ -9,7 +10,7 @@ import (
 // KeyResolver handles object key resolution for artist content storage in R2/S3.
 // Object key structure:
 //
-//	artist_content/{artistKey}/releases/{releaseHash}/
+//	artist_content/{artistKey}/releases/{releaseId}/
 //	  draft/                    <- exists only while unpublished
 //	    cover.jpg
 //	    wavs/
@@ -54,77 +55,77 @@ func (r *KeyResolver) ArtistContentPrefix(artistKey string) string {
 // --- Release (Published) ---
 
 // ReleasePrefix returns the prefix for a specific release.
-// Key: artist_content/{artistKey}/releases/{releaseHash}/
-func (r *KeyResolver) ReleasePrefix(artistKey, releaseHash string) string {
-	return path.Join("artist_content", artistKey, "releases", releaseHash) + "/"
+// Key: artist_content/{artistKey}/releases/{releaseId}/
+func (r *KeyResolver) ReleasePrefix(artistKey, releaseId string) string {
+	return path.Join("artist_content", artistKey, "releases", releaseId) + "/"
 }
 
 // ReleaseCover returns the key for a published release's cover image.
-// Key: artist_content/{artistKey}/releases/{releaseHash}/cover.jpg
-func (r *KeyResolver) ReleaseCover(artistKey, releaseHash, ext string) string {
-	return path.Join("artist_content", artistKey, "releases", releaseHash, "cover."+ext)
+// Key: artist_content/{artistKey}/releases/{releaseId}/cover.jpg
+func (r *KeyResolver) ReleaseCover(artistKey, releaseId, ext string) string {
+	return path.Join("artist_content", artistKey, "releases", releaseId, "cover."+ext)
 }
 
 // ReleaseCoverPrefix returns the prefix for cover files (to find cover with any extension).
-// Key: artist_content/{artistKey}/releases/{releaseHash}/cover
-func (r *KeyResolver) ReleaseCoverPrefix(artistKey, releaseHash string) string {
-	return path.Join("artist_content", artistKey, "releases", releaseHash, "cover")
+// Key: artist_content/{artistKey}/releases/{releaseId}/cover
+func (r *KeyResolver) ReleaseCoverPrefix(artistKey, releaseId string) string {
+	return path.Join("artist_content", artistKey, "releases", releaseId, "cover")
 }
 
 // ReleaseWAVsPrefix returns the prefix for WAV files in a published release.
-// Key: artist_content/{artistKey}/releases/{releaseHash}/wavs/
-func (r *KeyResolver) ReleaseWAVsPrefix(artistKey, releaseHash string) string {
-	return path.Join("artist_content", artistKey, "releases", releaseHash, "wavs") + "/"
+// Key: artist_content/{artistKey}/releases/{releaseId}/wavs/
+func (r *KeyResolver) ReleaseWAVsPrefix(artistKey, releaseId string) string {
+	return path.Join("artist_content", artistKey, "releases", releaseId, "wavs") + "/"
 }
 
 // ReleaseMP3sPrefix returns the prefix for MP3 files in a published release.
-// Key: artist_content/{artistKey}/releases/{releaseHash}/mp3s/
-func (r *KeyResolver) ReleaseMP3sPrefix(artistKey, releaseHash string) string {
-	return path.Join("artist_content", artistKey, "releases", releaseHash, "mp3s") + "/"
+// Key: artist_content/{artistKey}/releases/{releaseId}/mp3s/
+func (r *KeyResolver) ReleaseMP3sPrefix(artistKey, releaseId string) string {
+	return path.Join("artist_content", artistKey, "releases", releaseId, "mp3s") + "/"
 }
 
 // ReleaseTrack returns the key for a specific track file in a published release.
-// Key: artist_content/{artistKey}/releases/{releaseHash}/{format}/{filename}
-func (r *KeyResolver) ReleaseTrack(artistKey, releaseHash, format, filename string) string {
-	return path.Join("artist_content", artistKey, "releases", releaseHash, format, filename)
+// Key: artist_content/{artistKey}/releases/{releaseId}/{format}/{filename}
+func (r *KeyResolver) ReleaseTrack(artistKey, releaseId, format, filename string) string {
+	return path.Join("artist_content", artistKey, "releases", releaseId, format, filename)
 }
 
 // --- Release Draft ---
 
 // ReleaseDraftPrefix returns the prefix for a draft release.
-// Key: artist_content/{artistKey}/releases/{releaseHash}/draft/
-func (r *KeyResolver) ReleaseDraftPrefix(artistKey, releaseHash string) string {
-	return path.Join("artist_content", artistKey, "releases", releaseHash, "draft") + "/"
+// Key: artist_content/{artistKey}/releases/{releaseId}/draft/
+func (r *KeyResolver) ReleaseDraftPrefix(artistKey, releaseId string) string {
+	return path.Join("artist_content", artistKey, "releases", releaseId, "draft") + "/"
 }
 
 // ReleaseDraftCover returns the key for a draft release's cover image.
-// Key: artist_content/{artistKey}/releases/{releaseHash}/draft/cover.{ext}
-func (r *KeyResolver) ReleaseDraftCover(artistKey, releaseHash, ext string) string {
-	return path.Join("artist_content", artistKey, "releases", releaseHash, "draft", "cover."+ext)
+// Key: artist_content/{artistKey}/releases/{releaseId}/draft/cover.{ext}
+func (r *KeyResolver) ReleaseDraftCover(artistKey, releaseId, ext string) string {
+	return path.Join("artist_content", artistKey, "releases", releaseId, "draft", "cover."+ext)
 }
 
 // ReleaseDraftCoverPrefix returns the prefix for draft cover files.
-// Key: artist_content/{artistKey}/releases/{releaseHash}/draft/cover
-func (r *KeyResolver) ReleaseDraftCoverPrefix(artistKey, releaseHash string) string {
-	return path.Join("artist_content", artistKey, "releases", releaseHash, "draft", "cover")
+// Key: artist_content/{artistKey}/releases/{releaseId}/draft/cover
+func (r *KeyResolver) ReleaseDraftCoverPrefix(artistKey, releaseId string) string {
+	return path.Join("artist_content", artistKey, "releases", releaseId, "draft", "cover")
 }
 
 // ReleaseDraftWAVsPrefix returns the prefix for WAV files in a draft release.
-// Key: artist_content/{artistKey}/releases/{releaseHash}/draft/wavs/
-func (r *KeyResolver) ReleaseDraftWAVsPrefix(artistKey, releaseHash string) string {
-	return path.Join("artist_content", artistKey, "releases", releaseHash, "draft", "wavs") + "/"
+// Key: artist_content/{artistKey}/releases/{releaseId}/draft/wavs/
+func (r *KeyResolver) ReleaseDraftWAVsPrefix(artistKey, releaseId string) string {
+	return path.Join("artist_content", artistKey, "releases", releaseId, "draft", "wavs") + "/"
 }
 
 // ReleaseDraftMP3sPrefix returns the prefix for MP3 files in a draft release.
-// Key: artist_content/{artistKey}/releases/{releaseHash}/draft/mp3s/
-func (r *KeyResolver) ReleaseDraftMP3sPrefix(artistKey, releaseHash string) string {
-	return path.Join("artist_content", artistKey, "releases", releaseHash, "draft", "mp3s") + "/"
+// Key: artist_content/{artistKey}/releases/{releaseId}/draft/mp3s/
+func (r *KeyResolver) ReleaseDraftMP3sPrefix(artistKey, releaseId string) string {
+	return path.Join("artist_content", artistKey, "releases", releaseId, "draft", "mp3s") + "/"
 }
 
 // ReleaseDraftTrack returns the key for a specific track file in a draft release.
-// Key: artist_content/{artistKey}/releases/{releaseHash}/draft/{format}/{filename}
-func (r *KeyResolver) ReleaseDraftTrack(artistKey, releaseHash, format, filename string) string {
-	return path.Join("artist_content", artistKey, "releases", releaseHash, "draft", format, filename)
+// Key: artist_content/{artistKey}/releases/{releaseId}/draft/{format}/{filename}
+func (r *KeyResolver) ReleaseDraftTrack(artistKey, releaseId, format, filename string) string {
+	return path.Join("artist_content", artistKey, "releases", releaseId, "draft", format, filename)
 }
 
 // --- Utility ---
@@ -154,8 +155,8 @@ func (r *KeyResolver) SanitizeFileName(filename string) string {
 }
 
 // BuildTrackStoragePath builds the full storage path for a track.
-// Returns: artist_content/{artistKey}/releases/{releaseHash}/draft/{format}/{order:02d}-{sanitizedFilename}
-func (r *KeyResolver) BuildTrackStoragePath(artistKey, releaseHash string, order int, fileName, fileType string) string {
+// Returns: artist_content/{artistKey}/releases/{releaseId}/draft/{format}/{order:02d}-{sanitizedFilename}
+func (r *KeyResolver) BuildTrackStoragePath(artistKey, releaseId string, order int, fileName, fileType string) string {
 	format := r.GetFormatFolder(fileType)
 	cleanName := r.SanitizeFileName(fileName)
 	storageName := strings.ToLower(cleanName)
@@ -163,7 +164,7 @@ func (r *KeyResolver) BuildTrackStoragePath(artistKey, releaseHash string, order
 	if len(storageName) < 3 || storageName[2] != '-' {
 		storageName = strings.ToLower(cleanName)
 	}
-	return r.ReleaseDraftTrack(artistKey, releaseHash, format, storageName)
+	return r.ReleaseDraftTrack(artistKey, releaseId, format, storageName)
 }
 
 // DraftToPublishedKey converts a draft object key to its published equivalent.
@@ -172,10 +173,19 @@ func (r *KeyResolver) DraftToPublishedKey(draftKey string) string {
 	return strings.Replace(draftKey, "/draft/", "/", 1)
 }
 
+func (r *KeyResolver) PendingCoverPublishedKey(artistKey, releaseId, stagedCoverKey string) (string, error) {
+	draftCoverPrefix := r.ReleaseDraftCoverPrefix(artistKey, releaseId)
+	if !strings.HasPrefix(stagedCoverKey, draftCoverPrefix) {
+		return "", fmt.Errorf("pending cover key %q is outside release draft cover prefix", stagedCoverKey)
+	}
+
+	return r.DraftToPublishedKey(stagedCoverKey), nil
+}
+
 // PublishedToDraftKey converts a published object key to its draft equivalent.
 // Example: "artist_content/abc/releases/xyz/cover.jpg" -> "artist_content/abc/releases/xyz/draft/cover.jpg"
-func (r *KeyResolver) PublishedToDraftKey(publishedKey, artistKey, releaseHash string) string {
-	releasePrefix := r.ReleasePrefix(artistKey, releaseHash)
+func (r *KeyResolver) PublishedToDraftKey(publishedKey, artistKey, releaseId string) string {
+	releasePrefix := r.ReleasePrefix(artistKey, releaseId)
 	relativePath := strings.TrimPrefix(publishedKey, releasePrefix)
-	return path.Join("artist_content", artistKey, "releases", releaseHash, "draft", relativePath)
+	return path.Join("artist_content", artistKey, "releases", releaseId, "draft", relativePath)
 }

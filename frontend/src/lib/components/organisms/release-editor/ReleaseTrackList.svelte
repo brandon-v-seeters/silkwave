@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Icon from '$lib/components/atoms/Icon.svelte';
 	import type { WizardTrack } from '$lib/types/WizardTrack';
-	import ProjectTrackItem from './ProjectTrackItem.svelte';
+	import ReleaseTrackItem from './ReleaseTrackItem.svelte';
 
 	interface Props {
 		tracks: WizardTrack[];
@@ -47,7 +47,7 @@
 	{#if tracks.length > 0}
 		<ul class="flex flex-col">
 			{#each tracks as track, index (track.id)}
-				<ProjectTrackItem
+				<ReleaseTrackItem
 					{track}
 					{index}
 					total={tracks.length}

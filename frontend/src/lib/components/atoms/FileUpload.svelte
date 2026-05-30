@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { handleFileUpload, handleGetPresignedUrl } from '$lib/tools/filemanagement.ts';
+	import { handleFileUpload, handleGetPresignedUrl } from '$lib/utils/filemanagement';
 	import { createEventDispatcher, onMount } from 'svelte';
 
 	interface Props {
@@ -10,7 +10,7 @@
 
 	const dispatch = createEventDispatcher();
 
-	let dropZone: HTMLDivElement = $state();
+	let dropZone = $state<HTMLDivElement | null>(null);
 	let uploadedImages: string[] = $state([]);
 
 	const handleDragOver = (event: DragEvent) => {
@@ -46,8 +46,10 @@
 		const reader = new FileReader();
 		reader.onload = async (e) => {
 			uploadedImages = [...uploadedImages, e.target!.result as string];
-			const url = await handleGetPresignedUrl(file.name, path);
-			const res = await handleFileUpload(file, url);
+			const url = await handleGetPresignedUrl(file.name);
+			if (!url) return;
+
+			await handleFileUpload(file, url);
 
 			dispatch('fileUploaded', { url, path, name: `/${path}/${file.name}` });
 		};
@@ -55,8 +57,15 @@
 	};
 
 	onMount(() => {
+		if (!dropZone) return;
+
 		dropZone.addEventListener('dragover', handleDragOver);
 		dropZone.addEventListener('drop', handleDrop);
+
+		return () => {
+			dropZone?.removeEventListener('dragover', handleDragOver);
+			dropZone?.removeEventListener('drop', handleDrop);
+		};
 	});
 </script>
 

@@ -1,13 +1,16 @@
 <script lang="ts">
 	import { Tabs as TabsPrimitive } from 'bits-ui';
 	import { cn } from '$lib/utils/utils.js';
+	import type { ComponentProps } from 'svelte';
 
-	type $$Props = TabsPrimitive.TriggerProps;
-	type $$Events = TabsPrimitive.TriggerEvents;
+	type Props = ComponentProps<typeof TabsPrimitive.Trigger>;
 
-	let className: $$Props['class'] = undefined;
-	export let value: $$Props['value'];
-	export { className as class };
+	let {
+		class: className,
+		value,
+		children,
+		...restProps
+	}: Props = $props();
 </script>
 
 <TabsPrimitive.Trigger
@@ -20,8 +23,7 @@
 		className
 	)}
 	{value}
-	{...$$restProps}
-	on:click
+	{...restProps}
 >
-	<slot />
+	{@render children?.()}
 </TabsPrimitive.Trigger>

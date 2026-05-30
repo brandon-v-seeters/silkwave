@@ -6,7 +6,7 @@
 	import { toast, Toaster } from 'svelte-sonner';
 	import { page } from '$app/state';
 	import { setContext } from 'svelte';
-	import { ModeWatcher } from 'mode-watcher';
+	import { ModeWatcher, mode } from 'mode-watcher';
 
 	const flash = getFlash(page);
 
@@ -40,11 +40,12 @@
 <ModeWatcher defaultMode="system" />
 
 <Toaster
+	theme={mode.current ?? 'system'}
 	toastOptions={{
 		classes: {
-			toast: 'bg-card border-foreground/10 text-foreground',
+			toast: 'bg-card border-border text-foreground',
 			title: 'text-foreground',
-			description: 'text-muted-foreground',
+			description: 'text-foreground',
 			success: '[&_[data-icon]]:text-success',
 			error: '[&_[data-icon]]:text-destructive',
 			info: '[&_[data-icon]]:text-info',
@@ -54,3 +55,16 @@
 />
 
 {@render children?.()}
+
+<style>
+	:global(.dark [data-sonner-toast][data-styled='true']) {
+		background: var(--card) !important;
+		border-color: var(--border) !important;
+		color: var(--foreground) !important;
+	}
+
+	:global(.dark [data-sonner-toast] [data-title]),
+	:global(.dark [data-sonner-toast] [data-description]) {
+		color: var(--foreground) !important;
+	}
+</style>

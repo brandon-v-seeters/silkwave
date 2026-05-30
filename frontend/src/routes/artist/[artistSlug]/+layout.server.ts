@@ -1,7 +1,9 @@
 import { GET } from '$lib/api/Api.js';
+import { readApiData } from '$lib/api/envelope.js';
+import type { ArtistProfile } from '$lib/types/generated/models.js';
 import { error } from '@sveltejs/kit';
 
-export const load = async ({ params, fetch, parent }) => {
+export const load = async ({ params, fetch }) => {
 	const res = await GET(`/artists/${params.artistSlug}`, fetch);
 
 	if (!(await res.ok)) {
@@ -10,7 +12,8 @@ export const load = async ({ params, fetch, parent }) => {
 		});
 	}
 
-	const { artist } = await res.json();
+	const body = await readApiData<{ artist?: ArtistProfile }>(res);
+	const artist = body?.artist;
 
 	if (!artist) {
 		return error(404, {

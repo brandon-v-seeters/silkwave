@@ -41,7 +41,7 @@ type Track struct {
 	DocumentMeta `tstype:",extends"`
 
 	// Identifiers
-	Hash string `json:"hash"`
+	Id string `json:"id"`
 
 	// Relations
 	ReleaseKey string `json:"releaseKey"`
@@ -78,4 +78,9 @@ type Track struct {
 	// Stats (consider separate collection for frequent updates)
 	PlayCount     int `json:"playCount"`
 	DownloadCount int `json:"downloadCount"`
+}
+
+type PublicTrack struct {
+	Track     `tstype:",extends"`
+	StreamURL *string `json:"streamUrl,omitempty"`
 }

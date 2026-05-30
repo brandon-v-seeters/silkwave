@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -31,6 +32,11 @@ type Client struct {
 
 // NewClient creates a new R2/S3 storage client.
 func NewClient(ctx context.Context, cfg R2Config) (*Client, error) {
+	cfg = normalizeR2Config(cfg)
+	if err := validateR2Config(cfg); err != nil {
+		return nil, err
+	}
+
 	// R2 API endpoint - required for presigned URLs and authenticated operations
 	r2Endpoint := fmt.Sprintf("https://%s.r2.cloudflarestorage.com", cfg.AccountID)
 
@@ -63,6 +69,35 @@ func NewClient(ctx context.Context, cfg R2Config) (*Client, error) {
 		bucketName: cfg.BucketName,
 		resolver:   NewKeyResolver(),
 	}, nil
+}
+
+func normalizeR2Config(cfg R2Config) R2Config {
+	cfg.AccountID = strings.TrimSpace(cfg.AccountID)
+	cfg.AccessKeyID = strings.TrimSpace(cfg.AccessKeyID)
+	cfg.SecretAccessKey = strings.TrimSpace(cfg.SecretAccessKey)
+	cfg.BucketName = strings.TrimSpace(cfg.BucketName)
+	cfg.CustomDomain = strings.TrimSpace(cfg.CustomDomain)
+	return cfg
+}
+
+func validateR2Config(cfg R2Config) error {
+	var missing []string
+	if cfg.AccountID == "" {
+		missing = append(missing, "R2_ACCOUNT_ID (or CF_ACCOUNT_ID)")
+	}
+	if cfg.AccessKeyID == "" {
+		missing = append(missing, "R2_ACCESS_KEY_ID")
+	}
+	if cfg.SecretAccessKey == "" {
+		missing = append(missing, "R2_SECRET_ACCESS_KEY")
+	}
+	if cfg.BucketName == "" {
+		missing = append(missing, "R2_BUCKET_NAME")
+	}
+	if len(missing) > 0 {
+		return fmt.Errorf("invalid R2 storage config: missing %s", strings.Join(missing, ", "))
+	}
+	return nil
 }
 
 // Resolver returns the key resolver for generating object keys.

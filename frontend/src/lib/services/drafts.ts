@@ -1,14 +1,15 @@
 import { toast } from 'svelte-sonner';
-import type { WizardTrack, UploadProgress, UploadStatus } from '$lib/types/WizardTrack';
-import type { CreateDraftRequest, CreateDraftResponse, Release } from '$lib/types/generated/models';
-import { DELETE, GET, POST } from '$lib/api/Api';
+import { readApiData } from '$lib/api/envelope';
+import type { ReleaseWithTracks } from '$lib/types/generated/models';
+import { DELETE, GET } from '$lib/api/Api';
 
 
 const createDraftsService = () => {
-    const getDraft = async (draftKey: string): Promise<Release | null> => {
+    const getDraft = async (draftKey: string): Promise<ReleaseWithTracks | null> => {
         try {
             const response = await GET(`/releases/drafts/${draftKey}`);
-            return response as Release;
+            const body = await readApiData<{ draft?: ReleaseWithTracks }>(response);
+            return body?.draft ?? null;
         } catch (err) {
             console.error('Failed to get draft:', err);
             return null;
@@ -18,7 +19,7 @@ const createDraftsService = () => {
     const removeDraft = async (draftKey: string) => {
         try {
             const response = await DELETE(`/releases/drafts/${draftKey}`, undefined);
-            return response.success;
+            return response.ok;
         } catch (err) {
             console.error('Failed to remove draft:', err);
             toast.error('Failed to remove draft');

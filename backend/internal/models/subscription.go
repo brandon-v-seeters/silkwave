@@ -2,58 +2,44 @@ package models
 
 import "time"
 
-// SubscriptionTier represents the tier of a subscription
-type SubscriptionTier string
-
-const (
-	SubscriptionTierFree SubscriptionTier = "free"
-	SubscriptionTierPaid SubscriptionTier = "paid"
-)
-
 // SubscriptionStatus represents the status of a subscriber
 type SubscriptionStatus string
 
 const (
-	SubscriptionStatusActive            SubscriptionStatus = "active"
-	SubscriptionStatusCancelled         SubscriptionStatus = "cancelled"
-	SubscriptionStatusPaused            SubscriptionStatus = "paused"
-	SubscriptionStatusTrialing          SubscriptionStatus = "trialing"
-	SubscriptionStatusIncomplete        SubscriptionStatus = "incomplete"
-	SubscriptionStatusIncompleteExpired SubscriptionStatus = "incomplete_expired"
-	SubscriptionStatusPastDue           SubscriptionStatus = "past_due"
-	SubscriptionStatusUnpaid            SubscriptionStatus = "unpaid"
+	SubscriptionStatusActive   SubscriptionStatus = "active"
+	SubscriptionStatusInactive SubscriptionStatus = "inactive"
 )
 
-// Subscription represents a subscription plan offered by an artist
+// Subscription represents a paid support level offered by an artist
 type Subscription struct {
 	DocumentMeta `tstype:",extends"`
 
-	ArtistKey   string           `json:"artistKey" binding:"required"`
-	Name        string           `json:"name" binding:"required"`
-	Description string           `json:"description"`
-	Price       float64          `json:"price" binding:"required"`
-	Currency    string           `json:"currency" binding:"required"`
-	Tier        SubscriptionTier `json:"tier" binding:"required"`
-	CreatedAt   time.Time        `json:"createdAt"`
+	ArtistKey                 string    `json:"artistKey" binding:"required"`
+	Name                      string    `json:"name" binding:"required"`
+	Description               string    `json:"description"`
+	Price                     float64   `json:"price" binding:"required"`
+	Currency                  string    `json:"currency" binding:"required"`
+	SubscriberDiscountPercent *float64  `json:"subscriberDiscountPercent,omitempty"`
+	CreatedAt                 time.Time `json:"createdAt"`
 }
 
 // CreateSubscriptionRequest represents the request body for creating a subscription
 type CreateSubscriptionRequest struct {
-	ArtistKey   string           `json:"artistKey" binding:"required"`
-	Name        string           `json:"name" binding:"required"`
-	Description string           `json:"description"`
-	Price       float64          `json:"price" binding:"required"`
-	Currency    string           `json:"currency" binding:"required"`
-	Tier        SubscriptionTier `json:"tier" binding:"required"`
+	ArtistKey                 string   `json:"artistKey" binding:"required"`
+	Name                      string   `json:"name" binding:"required"`
+	Description               string   `json:"description"`
+	Price                     float64  `json:"price" binding:"required"`
+	Currency                  string   `json:"currency" binding:"required"`
+	SubscriberDiscountPercent *float64 `json:"subscriberDiscountPercent,omitempty"`
 }
 
 // UpdateSubscriptionRequest represents the request body for updating a subscription
 type UpdateSubscriptionRequest struct {
-	Name        string           `json:"name,omitempty"`
-	Description string           `json:"description,omitempty"`
-	Price       *float64         `json:"price,omitempty"`
-	Currency    string           `json:"currency,omitempty"`
-	Tier        SubscriptionTier `json:"tier,omitempty"`
+	Name                      string   `json:"name,omitempty"`
+	Description               string   `json:"description,omitempty"`
+	Price                     *float64 `json:"price,omitempty"`
+	Currency                  string   `json:"currency,omitempty"`
+	SubscriberDiscountPercent *float64 `json:"subscriberDiscountPercent,omitempty"`
 }
 
 // Subscriber represents a user's subscription to an artist's plan
@@ -84,11 +70,13 @@ type UpdateSubscriberRequest struct {
 type ClientSubscriber struct {
 	DocumentMeta `tstype:",extends"`
 
-	ArtistKey        string             `json:"artistKey"`
-	ArtistName       string             `json:"artistName"`
-	SubscriberKey    string             `json:"subscriberKey"`
-	SubscriptionKey  string             `json:"subscriptionKey"`
-	SubscriptionName string             `json:"subscriptionName"`
-	Status           SubscriptionStatus `json:"status"`
-	Tier             SubscriptionTier   `json:"tier"`
+	ArtistKey                 string             `json:"artistKey"`
+	ArtistName                string             `json:"artistName"`
+	SubscriberKey             string             `json:"subscriberKey"`
+	SubscriptionKey           string             `json:"subscriptionKey"`
+	SubscriptionName          string             `json:"subscriptionName"`
+	SubscriptionPrice         float64            `json:"subscriptionPrice"`
+	SubscriptionCurrency      string             `json:"subscriptionCurrency"`
+	SubscriberDiscountPercent *float64           `json:"subscriberDiscountPercent,omitempty"`
+	Status                    SubscriptionStatus `json:"status"`
 }

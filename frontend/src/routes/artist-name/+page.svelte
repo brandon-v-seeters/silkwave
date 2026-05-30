@@ -3,7 +3,7 @@
 	import Icon from '$lib/components/atoms/Icon.svelte';
 	import FormErrors from '$lib/components/atoms/form/FormErrors.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
-	import * as Form from '$lib/components/ui/form/index.ts';
+	import * as Form from '$lib/components/ui/form/index';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import { superForm } from 'sveltekit-superforms';
 

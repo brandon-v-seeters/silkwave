@@ -6,8 +6,8 @@
 	// Components
 	import Button from '$lib/components/ui/button/button.svelte';
 	import Icon from '$lib/components/atoms/Icon.svelte';
-	import * as Dialog from '$lib/components/ui/dialog/index.ts';
-	import * as Form from '$lib/components/ui/form/index.ts';
+	import * as Dialog from '$lib/components/ui/dialog/index';
+	import * as Form from '$lib/components/ui/form/index';
 	import Input from '$lib/components/ui/input/input.svelte';
 
 	const { form: formData, enhance, errors } = superForm(page.data.deleteForm);

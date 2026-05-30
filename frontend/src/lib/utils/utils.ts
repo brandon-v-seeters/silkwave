@@ -9,6 +9,8 @@ export type WithElementRef<T, E extends HTMLElement = HTMLElement> = T & {
 
 export type WithoutChildren<T> = Omit<T, 'children'>;
 
+export type WithoutChild<T> = Omit<T, 'child'>;
+
 export type WithoutChildrenOrChild<T> = Omit<T, 'children' | 'child'>;
 
 export const getTimestamp = () => {

@@ -97,3 +97,14 @@ type UpdateUserRequest struct {
 	Email    string        `json:"email,omitempty"`
 	Settings *UserSettings `json:"settings,omitempty"`
 }
+
+type CreateAvatarUploadRequest struct {
+	FileName string `json:"fileName" binding:"required"`
+	FileType string `json:"fileType" binding:"required"`
+	FileSize int64  `json:"fileSize" binding:"required"`
+}
+
+type CreateAvatarUploadResponse struct {
+	PresignedUrl string `json:"presignedUrl"`
+	StoragePath  string `json:"storagePath"`
+}

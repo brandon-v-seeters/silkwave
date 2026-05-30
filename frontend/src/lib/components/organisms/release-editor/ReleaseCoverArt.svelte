@@ -47,27 +47,6 @@
 </script>
 
 <div class="relative w-full">
-	<!-- Rotating disc accent, peeks from behind the cover -->
-	<div
-		class="pointer-events-none absolute top-[2%] aspect-square w-[96%] opacity-0 transition-all duration-700 ease-out {preview
-			? '-right-[10%] opacity-100'
-			: 'right-[2%]'}"
-		aria-hidden="true"
-	>
-		<div class="disc-spin relative h-full w-full rounded-full">
-			<div
-				class="absolute inset-0 rounded-full bg-foreground/10"
-				style="background: radial-gradient(circle at 30% 30%, oklch(from var(--color-foreground) l c h / 0.12), oklch(from var(--color-foreground) l c h / 0.06) 60%, oklch(from var(--color-foreground) l c h / 0.1));"
-			></div>
-			<div
-				class="absolute inset-[6%] rounded-full"
-				style="background: repeating-radial-gradient(circle at center, transparent 0, transparent 3%, oklch(from var(--color-background) l c h / 0.06) 3%, oklch(from var(--color-background) l c h / 0.06) 3.4%);"
-			></div>
-			<div class="absolute inset-[42%] rounded-full bg-primary/40"></div>
-			<div class="absolute inset-[48%] rounded-full bg-background"></div>
-		</div>
-	</div>
-
 	<!-- Cover art -->
 	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
@@ -88,8 +67,8 @@
 				draggable="false"
 			/>
 		{:else}
-			<div class="flex h-full w-full items-center justify-center bg-secondary">
-				<Icon icon="image" variant="filled" class="h-16 w-16 fill-foreground-muted/30" />
+			<div class="flex h-full w-full items-center justify-center bg-foreground/5">
+				<Icon icon="image" variant="filled" class="h-16 w-16 fill-foreground-muted" />
 			</div>
 		{/if}
 
@@ -106,24 +85,3 @@
 	</div>
 </div>
 <input id={inputId} type="file" accept="image/*" class="hidden" onchange={handleSelect} />
-
-<style>
-	.disc-spin {
-		animation: disc-rotate 24s linear infinite;
-	}
-
-	@keyframes disc-rotate {
-		from {
-			transform: rotate(0deg);
-		}
-		to {
-			transform: rotate(360deg);
-		}
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.disc-spin {
-			animation: none;
-		}
-	}
-</style>

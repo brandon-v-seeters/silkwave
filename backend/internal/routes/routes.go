@@ -53,15 +53,18 @@ func Setup(db *database.ArangoDB, cfg *config.Config) *gin.Engine {
 	passwordService := auth.NewPasswordService(cfg.PasswordSecret)
 	authService := auth.NewAuthService()
 
-	// Initialize handlers
-	healthHandler := handlers.NewHealthHandler()
-	authHandler := handlers.NewAuthHandler(db, jwtService, passwordService, authService)
-	artistHandler := handlers.NewArtistHandler(db)
-	releaseHandler := handlers.NewReleaseHandler(db, storageClient)
-
 	userRepo := repository.NewUserRepository(db)
+	releaseRepo := repository.NewReleaseRepository(db)
+	artistRepo := repository.NewArtistRepository(db)
+	accessRepo := repository.NewAccessRepository(db)
 	userHandler := handlers.NewUserHandler(userRepo, db)
 	settingsHandler := handlers.NewSettingsHandler(passwordService, db)
+
+	// Initialize handlers
+	healthHandler := handlers.NewHealthHandler()
+	authHandler := handlers.NewAuthHandler(userRepo, jwtService, passwordService, authService)
+	artistHandler := handlers.NewArtistHandler(artistRepo)
+	releaseHandler := handlers.NewReleaseHandler(db, accessRepo, releaseRepo, storageClient)
 
 	// Health check
 	router.GET("/health", healthHandler.Health)
@@ -77,8 +80,8 @@ func Setup(db *database.ArangoDB, cfg *config.Config) *gin.Engine {
 
 		// Public routes
 		api.GET("/releases", releaseHandler.GetReleases)
-		api.GET("/releases/:slug", releaseHandler.GetReleaseBySlug)
 		api.GET("/artists/:artistSlug", artistHandler.GetArtistBySlug)
+		api.GET("/artists/:artistSlug/releases/:releaseSlug", middleware.OptionalAuthMiddleware(jwtService), releaseHandler.GetReleaseByArtistAndSlug)
 
 		// Protected routes - require authentication
 		protected := api.Group("")
@@ -95,15 +98,21 @@ func Setup(db *database.ArangoDB, cfg *config.Config) *gin.Engine {
 
 			// Artist registration
 			protected.POST("/register/artist-name", artistHandler.RegisterArtistName)
+			protected.POST("/artists/:artistId/follow", artistHandler.FollowArtist)
+			protected.DELETE("/artists/:artistId/follow", artistHandler.UnfollowArtist)
 
 			// Release routes
 			protected.POST("/releases/draft", releaseHandler.SaveDraftRelease)
-			protected.POST("/releases/:releaseHash/confirm", releaseHandler.ConfirmDraftRelease)
-			protected.POST("/releases/:releaseHash/publish", releaseHandler.PublishRelease)
-			protected.POST("/releases/:releaseHash/unpublish", releaseHandler.UnpublishRelease)
-			protected.DELETE("/releases/:releaseHash", releaseHandler.DeleteRelease)
+			protected.POST("/releases/:releaseId/confirm", releaseHandler.ConfirmDraftRelease)
+			protected.POST("/releases/:releaseId/publish", releaseHandler.PublishRelease)
+			protected.POST("/releases/:releaseId/archive", releaseHandler.ArchiveRelease)
+			protected.DELETE("/releases/:releaseId", releaseHandler.DeleteRelease)
 			protected.GET("/releases/drafts", releaseHandler.GetDraftsByArtistKey)
 			protected.GET("/releases/drafts/:releaseKey", releaseHandler.GetDraftByKey)
+			protected.GET("/releases/:releaseId/pending/preview", releaseHandler.GetPendingPreview)
+			protected.POST("/releases/:releaseId/pending", releaseHandler.StagePendingEdit)
+			protected.DELETE("/releases/:releaseId/pending", releaseHandler.DiscardPendingEdit)
+			protected.POST("/releases/:releaseId/pending/publish", releaseHandler.PublishPendingEdit)
 
 			// Avatar upload
 			protected.POST("/upload/avatar", releaseHandler.UploadAvatar)

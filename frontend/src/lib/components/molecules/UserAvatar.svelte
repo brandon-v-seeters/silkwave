@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Avatar, AvatarImage, AvatarFallback } from '$lib/components/ui/avatar/index.ts';
+	import { Avatar, AvatarImage, AvatarFallback } from '$lib/components/ui/avatar/index';
 	import { resolveImage } from '$lib/utils/utils';
 	import type { User, Artist } from '$lib/types/generated/models';
 

@@ -5,7 +5,6 @@
 	import Input from '../ui/input/input.svelte';
 	import Checkbox from '../ui/checkbox/checkbox.svelte';
 	import * as Form from '$lib/components/ui/form/index';
-	import { enhance } from '$app/forms';
 	import { superForm } from 'sveltekit-superforms';
 	import { page } from '$app/state';
 	import { toast } from 'svelte-sonner';
@@ -32,7 +31,7 @@
 		}
 	});
 
-	const { form: formData } = form;
+	const { form: formData, enhance } = form;
 
 	// Handle checkbox change - update form data directly
 	function handleArtistChange(checked: boolean) {

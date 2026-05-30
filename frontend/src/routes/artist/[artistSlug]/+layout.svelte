@@ -6,7 +6,7 @@
 	import { cubicInOut } from 'svelte/easing';
 	import type { WithElementRef } from 'bits-ui';
 	import type { HTMLInputAttributes } from 'svelte/elements';
-	import { ARTIST_PROFILE_ROUTES } from '$lib/constants/routes.ts';
+	import { ARTIST_PROFILE_ROUTES } from '$lib/constants/routes';
 	import Icon from '$lib/components/atoms/Icon.svelte';
 
 	let { children, class: className }: WithElementRef<HTMLInputAttributes> = $props();

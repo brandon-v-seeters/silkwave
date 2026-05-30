@@ -5,6 +5,9 @@
 
 	// Components
 	import Icon from '$lib/components/atoms/Icon.svelte';
+	import Button from '$lib/components/ui/button/button.svelte';
+	import DataTable from '$lib/components/ui/data-table/data-table.svelte';
+	import { columns } from './drafts/columns';
 
 	// Stores
 	import * as Form from '$lib/components/ui/form';
@@ -13,30 +16,15 @@
 	// Types
 	import type { AppUser } from '$lib/types/generated';
 	import { page } from '$app/state';
-	import Button from '$lib/components/ui/button/button.svelte';
 	import FormErrors from '$lib/components/atoms/form/FormErrors.svelte';
 
 	const userCtx = getContext<{ current: AppUser }>('user');
 	const user = $derived(userCtx.current);
+	const drafts = $derived(page.data.drafts ?? []);
 
 	const form = superForm(page.data.form);
 	const { form: formData, enhance, delayed } = form;
 </script>
-
-{#snippet btn(href: string, title: string, icon: string)}
-	<a
-		{href}
-		class="group col-span-1 flex h-40 cursor-pointer flex-col
-		items-center justify-center gap-4 rounded-lg border border-zinc-700 bg-muted
-		bg-zinc-900 p-4 transition-all duration-500 hover:border-primary hover:bg-primary/10 hover:text-primary"
-	>
-		<Icon
-			{icon}
-			class="transition-fill h-8 w-8 fill-foreground duration-500 group-hover:fill-primary"
-		/>
-		<h2 class="text-base">{title}</h2>
-	</a>
-{/snippet}
 
 {#if !user?.artist?._key}
 	<div class="mx-auto flex max-w-3xl flex-col gap-2">
@@ -71,20 +59,40 @@
 		</form>
 	</div>
 {:else}
-	<div class="mx-auto flex max-w-3xl flex-col gap-2">
-		<h1 class="leading-xl text-xl md:text-left md:text-2xl">Manage your music</h1>
-		<p class="mb-4 text-base font-light text-foreground-muted md:text-left">
-			Start making money from your music today
-		</p>
-		<div class="gap-base mt-sm grid max-w-[280px] grid-cols-1 md:gap-6">
-			<Button variant="primary" href="/upload/release">
-				<Icon icon="music-note-2" class="h-6 w-6" />
+	<div class="mx-auto flex max-w-5xl flex-col gap-8">
+		<div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+			<div class="flex flex-col gap-2">
+				<h1 class="leading-xl text-xl md:text-left md:text-2xl">Upload music</h1>
+				<p class="max-w-2xl text-base font-light text-foreground-muted md:text-left">
+					Create a release from scratch or pick up a draft.
+				</p>
+			</div>
+			<Button variant="primary" href="/upload/release" class="w-full justify-center md:w-fit">
+				<Icon icon="music-note-2" class="h-5 w-5" />
 				Create a new release
 			</Button>
-			<Button variant="outline" href="/upload/drafts">
-				<Icon icon="file-text" variant="line" class="h-6 w-6 fill-foreground" />
-				Manage your drafts
-			</Button>
 		</div>
+
+		<section class="flex flex-col gap-3" aria-labelledby="drafts-heading">
+			<div class="flex flex-col gap-1">
+				<h2 id="drafts-heading" class="text-lg font-medium text-foreground">Drafts</h2>
+				<p class="text-sm text-foreground-muted">
+					{drafts.length === 1 ? '1 saved draft' : `${drafts.length} saved drafts`}
+				</p>
+			</div>
+
+			<DataTable data={drafts} {columns}>
+				{#snippet noResults()}
+					<div class="flex flex-col items-center justify-center gap-3 p-6">
+						<Icon icon="file-text" variant="line" class="h-6 w-6 fill-foreground" />
+						<p class="text-sm text-foreground-muted">No drafts yet.</p>
+						<Button variant="outline" href="/upload/release">
+							<Icon icon="plus" variant="line" class="h-5 w-5 fill-foreground" />
+							Create a new release
+						</Button>
+					</div>
+				{/snippet}
+			</DataTable>
+		</section>
 	</div>
 {/if}

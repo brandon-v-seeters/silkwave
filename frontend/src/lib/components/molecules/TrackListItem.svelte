@@ -16,18 +16,7 @@
 		editingTrack?: boolean;
 	}
 
-	let {
-		track,
-		index,
-		isFirst,
-		isLast,
-		onTitleChange,
-		onFileChange,
-		onMoveUp,
-		onMoveDown,
-		onRemove,
-		editingTrack
-	}: Props = $props();
+	let { track, index, onTitleChange, onFileChange, onRemove, editingTrack }: Props = $props();
 
 	const handleDrop = (e: DragEvent) => {
 		e.preventDefault();

@@ -1,7 +1,7 @@
-import { redirect } from "@sveltejs/kit";
-import { draftsService } from "$lib/services/drafts";
-import { GET } from "$lib/api/Api";
-import type { Release } from "$lib/types/generated";
+import { GET } from '$lib/api/Api';
+import { readApiData } from '$lib/api/envelope';
+import type { ReleaseWithTracks } from '$lib/types/generated';
+import { redirect } from '@sveltejs/kit';
 
 export const load = async ({ locals, url, fetch }) => {
     const { user } = locals;
@@ -11,10 +11,11 @@ export const load = async ({ locals, url, fetch }) => {
     }
 
     const draftKey = url.searchParams.get('draftKey');
-    let draft: Release | null = null;
+    let draft: ReleaseWithTracks | null = null;
     if (draftKey) {
         const response = await GET(`/releases/drafts/${draftKey}`, fetch);
-        draft = response.draft as Release;
+        const body = await readApiData<{ draft?: ReleaseWithTracks }>(response);
+        draft = body?.draft ?? null;
     }
 
     return {

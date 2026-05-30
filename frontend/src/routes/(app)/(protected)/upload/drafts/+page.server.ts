@@ -1,4 +1,6 @@
 import { GET } from '$lib/api/Api';
+import { readApiData } from '$lib/api/envelope';
+import type { ReleaseWithArtist } from '$lib/types/generated/models';
 import { redirect } from '@sveltejs/kit';
 
 export const ssr = true;
@@ -10,9 +12,10 @@ export async function load({ locals, fetch }) {
         throw redirect(307, '/upload');
     }
 
-    const { drafts } = await GET('/releases/drafts', fetch, { artistKey: user.artist._key });
+    const response = await GET('/releases/drafts', fetch, { artistKey: user.artist._key });
+    const body = await readApiData<{ drafts?: ReleaseWithArtist[] }>(response);
 
     return {
-        drafts: drafts || []
+        drafts: body?.drafts ?? []
     };
 }

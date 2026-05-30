@@ -1,6 +1,19 @@
 import { z } from 'zod';
 import { error, type RequestEvent } from '@sveltejs/kit';
-import { PUBLIC_API_URL } from '$env/static/public';
+import { env } from '$env/dynamic/public';
+import { dev } from '$app/environment';
+
+const DEV_API_URL = 'http://localhost:8080/api';
+
+export function apiUrl(path: string) {
+	const baseUrl = env.PUBLIC_API_URL || (dev ? DEV_API_URL : '');
+
+	if (!baseUrl) {
+		throw new Error('PUBLIC_API_URL is not configured');
+	}
+
+	return `${baseUrl}${path}`;
+}
 
 async function useFetch(
 	fetch: RequestEvent['fetch'] = globalThis.fetch,
@@ -33,17 +46,31 @@ async function useFetch(
 		delete opts.headers?.['Authorization' as keyof HeadersInit];
 	}
 
-	const res = await fetch(`${PUBLIC_API_URL}${path}`, opts).catch((err) => err);
-
-	if (res.message === 'fetch failed') {
-		throw error(500, 'Could not connect to server...');
+	let res: Response;
+	try {
+		res = await fetch(apiUrl(path), opts);
+	} catch {
+		throw error(500, { message: 'Could not connect to server.' });
 	}
 
 	if (!res.ok) {
-		throw error(res.status, await res.json());
+		throw error(res.status, await readErrorBody(res));
 	}
 
 	return res;
+}
+
+async function readErrorBody(res: Response) {
+	const text = await res.text();
+	if (!text) {
+		return { message: res.statusText || 'Request failed' };
+	}
+
+	try {
+		return JSON.parse(text);
+	} catch {
+		return { message: text };
+	}
 }
 
 export function GET(path: string, fetch?: RequestEvent['fetch'], params?: Record<string, string | number | boolean>, token?: string) {
@@ -83,9 +110,12 @@ export const handleError = (res: any, title: string, errors?: Record<string, str
 	let fieldCount = 0;
 
 	if (res instanceof z.ZodError && typeof errors === 'object') {
-		for (let i = 0; i < res.errors.length; i++) {
-			const error = res.errors[i];
-			errors[error.path[0]] = error.message;
+		for (let i = 0; i < res.issues.length; i++) {
+			const error = res.issues[i];
+			const field = error.path[0];
+			if (typeof field === 'string') {
+				errors[field] = error.message;
+			}
 		}
 		errors = errors;
 		return;

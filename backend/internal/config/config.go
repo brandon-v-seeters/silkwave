@@ -37,7 +37,7 @@ func Load() *Config {
 		PasswordSecret: getEnv("PASSWORD_SECRET", "your-password-secret-change-in-production"),
 
 		// Cloudflare R2 Storage
-		R2AccountID:       getEnv("R2_ACCOUNT_ID", ""),
+		R2AccountID:       getEnvAny([]string{"R2_ACCOUNT_ID", "CF_ACCOUNT_ID"}, ""),
 		R2AccessKeyID:     getEnv("R2_ACCESS_KEY_ID", ""),
 		R2SecretAccessKey: getEnv("R2_SECRET_ACCESS_KEY", ""),
 		R2BucketName:      getEnv("R2_BUCKET_NAME", "silkwave"),
@@ -47,6 +47,15 @@ func Load() *Config {
 func getEnv(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
+	}
+	return defaultValue
+}
+
+func getEnvAny(keys []string, defaultValue string) string {
+	for _, key := range keys {
+		if value := os.Getenv(key); value != "" {
+			return value
+		}
 	}
 	return defaultValue
 }

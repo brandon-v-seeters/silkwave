@@ -61,11 +61,19 @@ var Schema = []CollectionDefinition{
 		},
 	},
 	{
+		Name: "Follows",
+		Type: EdgeCollection,
+		Indices: []IndexDefinition{
+			{Fields: []string{"_from", "_to"}, Unique: true, Type: PersistentIndex},
+			{Fields: []string{"_to"}, Unique: false, Type: PersistentIndex},
+		},
+	},
+	{
 		Name: "Subscriptions",
 		Type: DocumentCollection,
 		Indices: []IndexDefinition{
 			{Fields: []string{"artistKey"}, Unique: false, Type: PersistentIndex},
-			{Fields: []string{"artistKey", "tier"}, Unique: false, Type: PersistentIndex},
+			{Fields: []string{"artistKey", "currency", "price"}, Unique: true, Type: PersistentIndex},
 		},
 	},
 	{
@@ -79,45 +87,22 @@ var Schema = []CollectionDefinition{
 		},
 	},
 	{
-		Name: "ReleaseDrafts",
-		Type: DocumentCollection,
-		Indices: []IndexDefinition{
-			{Fields: []string{"artistKey"}, Unique: false, Type: PersistentIndex},
-			{Fields: []string{"hash"}, Unique: true, Type: PersistentIndex},
-			{Fields: []string{"slug"}, Unique: false, Type: PersistentIndex},
-		},
-	},
-	{
-		Name: "SongDrafts",
-		Type: DocumentCollection,
-		Indices: []IndexDefinition{
-			{Fields: []string{"userKey", "albumHash", "filename"}, Unique: true, Type: PersistentIndex},
-		},
-	},
-	{
 		Name: "Releases",
 		Type: DocumentCollection,
 		Indices: []IndexDefinition{
+			{Fields: []string{"id"}, Unique: true, Type: PersistentIndex},
 			{Fields: []string{"slug"}, Unique: false, Type: PersistentIndex},
-			{Fields: []string{"artistKey", "releaseDate"}, Unique: false, Type: PersistentIndex},
-			{Fields: []string{"published", "releaseDate"}, Unique: false, Type: PersistentIndex},
+			{Fields: []string{"artistKey", "slug"}, Unique: true, Type: PersistentIndex},
+			{Fields: []string{"artistKey", "status"}, Unique: false, Type: PersistentIndex},
+			{Fields: []string{"artistKey", "publishAt"}, Unique: false, Type: PersistentIndex},
+			{Fields: []string{"status", "publishAt"}, Unique: false, Type: PersistentIndex},
 		},
 	},
 	{
 		Name: "Tracks",
 		Type: DocumentCollection,
 		Indices: []IndexDefinition{
-			{Fields: []string{"slug"}, Unique: false, Type: PersistentIndex},
-			{Fields: []string{"artistKey", "releaseDate"}, Unique: false, Type: PersistentIndex},
-			{Fields: []string{"releaseKey", "hash"}, Unique: false, Type: PersistentIndex},
-			{Fields: []string{"published", "releaseDate"}, Unique: false, Type: PersistentIndex},
-		},
-	},
-	{
-		Name: "TrackDrafts",
-		Type: DocumentCollection,
-		Indices: []IndexDefinition{
-			{Fields: []string{"releaseKey", "hash"}, Unique: true, Type: PersistentIndex},
+			{Fields: []string{"releaseKey", "id"}, Unique: false, Type: PersistentIndex},
 		},
 	},
 }

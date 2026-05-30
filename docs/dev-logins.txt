@@ -1,0 +1,11 @@
+Seeded Silkwave dev universe.
+
+Logins:
+artist@silkwave.test / Silkwave123!
+fan@silkwave.test / Silkwave123!
+subscriber@silkwave.test / Silkwave123!
+
+Primary URLs:
+Artist: /artist/framer
+Release: /artist/framer/releases/moon-in-my-sky
+Drafts: /upload/drafts

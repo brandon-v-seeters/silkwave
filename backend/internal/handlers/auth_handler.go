@@ -1,121 +1,96 @@
 package handlers
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
-	"os"
-	"time"
+	"strings"
 
 	"github.com/brandon-v-seeters/go-silk-wave/internal/auth"
-	"github.com/brandon-v-seeters/go-silk-wave/internal/database"
 	"github.com/brandon-v-seeters/go-silk-wave/internal/logger"
 	"github.com/brandon-v-seeters/go-silk-wave/internal/models"
+	"github.com/brandon-v-seeters/go-silk-wave/internal/repository"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
 
 type AuthHandler struct {
-	db              *database.ArangoDB
+	userRepo        *repository.UserRepository
 	jwtService      *auth.JWTService
 	passwordService *auth.PasswordService
 	authService     *auth.AuthService
 }
 
-func NewAuthHandler(db *database.ArangoDB, jwtService *auth.JWTService, passwordService *auth.PasswordService, authService *auth.AuthService) *AuthHandler {
+func NewAuthHandler(userRepo *repository.UserRepository, jwtService *auth.JWTService, passwordService *auth.PasswordService, authService *auth.AuthService) *AuthHandler {
 	return &AuthHandler{
-		db:              db,
+		userRepo:        userRepo,
 		jwtService:      jwtService,
 		passwordService: passwordService,
 		authService:     authService,
 	}
 }
 
-type PasswordAndKey struct {
-	Password string `json:"password"`
-	Key      string `json:"key"`
-}
-
 // Login handles POST /api/login
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req models.LoginUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Missing required parameters."})
+		respondError(c, http.StatusBadRequest, "invalid_request", "Missing required parameters.")
 		return
 	}
 
-	if req.Email == "" || req.Password == "" {
-		logger.Warn("Missing required parameters", zap.String("email", req.Email), zap.String("password", req.Password))
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Missing required parameters."})
-		return
-	}
-
-	query := `
-	FOR user IN Users FILTER user.email == @email RETURN { 
-			password: user.password,
-			key: user._key
+	user, err := h.userRepo.GetCredentialsByEmail(c.Request.Context(), req.Email)
+	if err != nil {
+		if errors.Is(err, repository.ErrUserCredentialsNotFound) {
+			logger.Warn("Incorrect login details", zap.String("email", req.Email))
+			respondError(c, http.StatusUnauthorized, "unauthorized", "Incorrect login details.")
+			return
 		}
-	`
 
-	// Find user by email
-	user, err := database.QueryOne[PasswordAndKey](c.Request.Context(), h.db, query, map[string]interface{}{"email": req.Email})
-
-	if err != nil || user.Password == "" || user.Key == "" {
-		logger.Error("Failed to find user", err, zap.String("email", req.Email))
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "Incorrect login details."})
+		logger.Error("Failed to get user credentials", err, zap.String("email", req.Email))
+		respondError(c, http.StatusInternalServerError, "internal_error", "Failed to login.")
 		return
 	}
 
-	// Check password
 	if !h.passwordService.CheckPassword(req.Password, user.Password) {
 		logger.Warn("Incorrect login details", zap.String("email", req.Email))
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "Incorrect login details."})
+		respondError(c, http.StatusUnauthorized, "unauthorized", "Incorrect login details.")
 		return
 	}
 
-	// Generate token
 	token, err := h.jwtService.GenerateToken(user.Key)
 	if err != nil {
 		logger.Error("Failed to generate session", err, zap.String("email", req.Email))
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to generate session."})
+		respondError(c, http.StatusInternalServerError, "internal_error", "Failed to generate session.")
 		return
 	}
 
-	// Set cookie
-	h.setSessionCookie(c, token)
+	auth.SetSessionCookie(c, token)
 
-	c.JSON(http.StatusOK, gin.H{"message": "Login successful."})
+	respondOK(c, nil, "Login successful.")
 }
 
 // Register handles POST /api/register
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req models.RegisterUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Missing required parameters."})
+		respondError(c, http.StatusBadRequest, "invalid_request", "Missing required parameters.")
 		return
 	}
 
-	if req.Email == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "An email is required."})
-		return
-	}
-
-	if req.Password == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "A password is required."})
-		return
-	}
-
-	// Hash password
 	hashedPassword, err := h.passwordService.HashPassword(req.Password)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to process password."})
+		logger.Error("Failed to process password", err, zap.String("email", req.Email))
+		respondError(c, http.StatusInternalServerError, "internal_error", "Failed to process password.")
 		return
 	}
 
-	// Generate a temporary username from email hash
-	tempUsername, _ := h.passwordService.HashPassword(req.Email)
+	tempUsername, err := h.passwordService.HashPassword(req.Email)
+	if err != nil {
+		logger.Error("Failed to generate temporary username", err, zap.String("email", req.Email))
+		respondError(c, http.StatusInternalServerError, "internal_error", "User could not be created.")
+		return
+	}
 
-	// Create user
-	user := models.UserWithCredentials{
+	user := &models.UserWithCredentials{
 		User: models.User{
 			Username:          tempUsername[:20], // Truncate for reasonable length
 			Email:             req.Email,
@@ -125,83 +100,49 @@ func (h *AuthHandler) Register(c *gin.Context) {
 			Settings: models.UserSettings{
 				ReceiveEmails: true,
 			},
-			CreatedAt: time.Now(),
 		},
 		Password:              hashedPassword,
 		EmailUnsubscribeToken: "",
 		Socials:               make(map[string]models.SocialWithCredentials),
 	}
 
-	fmt.Println(user)
-
-	// Insert user
-	result, err := database.QueryOne[string](c.Request.Context(), h.db,
-		"INSERT @user INTO Users RETURN NEW._key",
-		map[string]interface{}{"user": user})
-
+	created, err := h.userRepo.CreateWithCredentials(c.Request.Context(), user)
 	if err != nil {
-		// Check for unique constraint violation
 		if isUniqueConstraintError(err) {
-			logger.Error("Unique constraint violation", err, zap.String("email", req.Email))
-			c.JSON(http.StatusConflict, gin.H{"message": "Email already exists."})
+			logger.Warn("Email already exists", zap.String("email", req.Email))
+			respondError(c, http.StatusConflict, "email_taken", "Email already exists.")
 			return
 		}
-		c.JSON(http.StatusBadRequest, gin.H{"message": "User could not be created."})
+
+		logger.Error("Failed to create user", err, zap.String("email", req.Email))
+		respondError(c, http.StatusBadRequest, "invalid_request", "User could not be created.")
 		return
 	}
 
-	// Generate token
-	token, err := h.jwtService.GenerateToken(*result)
+	token, err := h.jwtService.GenerateToken(created.Key)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to generate session."})
+		logger.Error("Failed to generate session", err, zap.String("email", req.Email))
+		respondError(c, http.StatusInternalServerError, "internal_error", "Failed to generate session.")
 		return
 	}
 
-	// Set cookie
-	h.setSessionCookie(c, token)
+	auth.SetSessionCookie(c, token)
 
-	c.JSON(http.StatusOK, gin.H{"message": "User created successfully."})
+	respondOK(c, nil, "User created successfully.")
 }
 
 // Logout handles POST /api/logout
 func (h *AuthHandler) Logout(c *gin.Context) {
 	err := h.authService.Logout(c)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to logout."})
+		logger.Error("Failed to logout", err)
+		respondError(c, http.StatusInternalServerError, "internal_error", "Failed to logout.")
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "Logged out successfully."})
-}
 
-func (h *AuthHandler) setSessionCookie(c *gin.Context, token string) {
-	// 30 days expiry
-	maxAge := 60 * 60 * 24 * 30
-	domain := "silkwave.io"
-	secure := true
-	c.SetSameSite(http.SameSiteNoneMode)
-
-	if os.Getenv("ENVIRONMENT") == "development" {
-		domain = "localhost"
-		secure = false
-		c.SetSameSite(http.SameSiteLaxMode)
-	}
-
-	c.SetCookie("session", token, maxAge, "/", domain, secure, true)
+	respondOK(c, nil, "Logged out successfully.")
 }
 
 func isUniqueConstraintError(err error) bool {
-	return err != nil && (contains(err.Error(), "unique constraint") || contains(err.Error(), "duplicate"))
-}
-
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(s) > 0 && containsHelper(s, substr))
-}
-
-func containsHelper(s, substr string) bool {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
-	}
-	return false
+	return err != nil && (strings.Contains(err.Error(), "unique constraint") || strings.Contains(err.Error(), "duplicate"))
 }

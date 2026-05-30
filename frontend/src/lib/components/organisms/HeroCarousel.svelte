@@ -2,10 +2,14 @@
 	import { onMount } from 'svelte';
 	import type { Release } from '$lib/types/generated/models';
 
-	type HeroSlide = {
-		release: Release & { artist?: { name: string; slug: string } };
-		backgroundImage: string;
-	};
+type HeroSlide = {
+	release: Partial<Release> &
+		Pick<Release, 'id' | 'title' | 'slug' | 'artistKey' | 'releaseType' | 'publishAt'> & {
+			artist?: { name: string; slug: string };
+			coverArt?: string;
+		};
+	backgroundImage: string;
+};
 
 	let currentSlide = $state(0);
 	let autoplayInterval: ReturnType<typeof setInterval> | null = null;
@@ -17,14 +21,14 @@
 				_id: 'hero-1',
 				_key: 'hero-1',
 				_rev: '1',
+				id: 'hero-1',
 				title: 'Led by Ancient Light',
 				slug: 'led-by-ancient-light',
 				artistKey: 'koan-sound',
-				type: 'album',
-				releaseDate: Date.now(),
-				createdAt: Date.now(),
-				updatedAt: Date.now(),
-				published: true,
+				releaseType: 'album',
+				publishAt: new Date().toISOString(),
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString(),
 				coverArt:
 					'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&h=1080&fit=crop&q=80',
 				artist: { name: 'KOAN Sound', slug: 'koan-sound' }
@@ -37,14 +41,14 @@
 				_id: 'hero-2',
 				_key: 'hero-2',
 				_rev: '1',
+				id: 'hero-2',
 				title: 'Midnight Echoes',
 				slug: 'midnight-echoes',
 				artistKey: 'neon-dreams',
-				type: 'ep',
-				releaseDate: Date.now(),
-				createdAt: Date.now(),
-				updatedAt: Date.now(),
-				published: true,
+				releaseType: 'ep',
+				publishAt: new Date().toISOString(),
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString(),
 				coverArt:
 					'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=1920&h=1080&fit=crop&q=80',
 				artist: { name: 'Neon Dreams', slug: 'neon-dreams' }

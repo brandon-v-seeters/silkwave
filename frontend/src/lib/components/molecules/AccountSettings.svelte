@@ -4,8 +4,8 @@
 	import { page } from '$app/state';
 
 	// Components
-	import * as Form from '$lib/components/ui/form/index.ts';
-	import * as Dialog from '$lib/components/ui/dialog/index.ts';
+	import * as Form from '$lib/components/ui/form/index';
+	import * as Dialog from '$lib/components/ui/dialog/index';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import Button from '../ui/button/button.svelte';
 	import Icon from '../atoms/Icon.svelte';
@@ -55,15 +55,17 @@
 	</p>
 	<div class="flex max-w-sm flex-col gap-2 pb-6">
 		<Form.Field form={emailForm} name="email">
-			<Form.Control let:attrs>
-				<Form.Label>Email</Form.Label>
-				<Input
-					{...attrs}
-					placeholder="email@example.com"
-					type="email"
-					bind:value={$emailFormData.email}
-					oninput={() => (touched = true)}
-				/>
+			<Form.Control>
+				{#snippet children({ props })}
+					<Form.Label>Email</Form.Label>
+					<Input
+						{...props}
+						placeholder="email@example.com"
+						type="email"
+						bind:value={$emailFormData.email}
+						oninput={() => (touched = true)}
+					/>
+				{/snippet}
 			</Form.Control>
 		</Form.Field>
 
@@ -104,14 +106,16 @@
 				<input type="hidden" name="email" value={$emailFormData.email} />
 
 				<Form.Field form={emailForm} name="password">
-					<Form.Control let:attrs>
-						<Form.Label>Password</Form.Label>
-						<Input
-							{...attrs}
-							placeholder="***"
-							type="password"
-							bind:value={$emailFormData.password}
-						/>
+					<Form.Control>
+						{#snippet children({ props })}
+							<Form.Label>Password</Form.Label>
+							<Input
+								{...props}
+								placeholder="***"
+								type="password"
+								bind:value={$emailFormData.password}
+							/>
+						{/snippet}
 					</Form.Control>
 				</Form.Field>
 
@@ -147,23 +151,27 @@
 			</Dialog.Description>
 			<form method="POST" action="?/changePassword" use:passwordEnhance class="flex flex-col">
 				<Form.Field form={passwordForm} name="oldPassword" class="mb-4">
-					<Form.Control let:attrs>
-						<Form.Label>Old password</Form.Label>
-						<Input
-							{...attrs}
-							type="password"
-							bind:value={$passwordFormData.oldPassword}
-						/>
+					<Form.Control>
+						{#snippet children({ props })}
+							<Form.Label>Old password</Form.Label>
+							<Input
+								{...props}
+								type="password"
+								bind:value={$passwordFormData.oldPassword}
+							/>
+						{/snippet}
 					</Form.Control>
 				</Form.Field>
 				<Form.Field form={passwordForm} name="newPassword">
-					<Form.Control let:attrs>
-						<Form.Label>New password</Form.Label>
-						<Input
-							{...attrs}
-							type="password"
-							bind:value={$passwordFormData.newPassword}
-						/>
+					<Form.Control>
+						{#snippet children({ props })}
+							<Form.Label>New password</Form.Label>
+							<Input
+								{...props}
+								type="password"
+								bind:value={$passwordFormData.newPassword}
+							/>
+						{/snippet}
 					</Form.Control>
 				</Form.Field>
 				<FormErrors form={passwordForm} />

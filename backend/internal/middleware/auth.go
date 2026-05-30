@@ -103,21 +103,23 @@ func UserManagesArtist(c *gin.Context, db *database.ArangoDB, artistKey string) 
 	}
 
 	query := /*aql*/ `
-		FOR a IN Artists
-		FILTER a.userKey == @userKey && a._key == @artistKey
-		RETURN a._key
+		FOR userArtist IN UsersArtists
+		FILTER userArtist._from == CONCAT("Users/", @userKey)
+		FILTER userArtist._to == CONCAT("Artists/", @artistKey)
+		LIMIT 1
+		RETURN true
 	`
 	bindVars := map[string]interface{}{
 		"userKey":   userKey,
 		"artistKey": artistKey,
 	}
 
-	result, err := database.QueryOne[string](c.Request.Context(), db, query, bindVars)
+	result, err := database.QueryOne[bool](c.Request.Context(), db, query, bindVars)
 	if err != nil {
 		return false
 	}
 
-	return result != nil
+	return result != nil && *result
 }
 
 // CheckToken validates the token and sets user key in context if not already set

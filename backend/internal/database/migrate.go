@@ -19,6 +19,10 @@ func (a *ArangoDB) Migrate(ctx context.Context) error {
 		}
 	}
 
+	if err := a.migrateLegacyReleaseDraftCollections(ctx); err != nil {
+		return fmt.Errorf("failed to migrate legacy release draft collections: %w", err)
+	}
+
 	log.Println("Database migration completed successfully")
 	return nil
 }
@@ -33,7 +37,67 @@ func (a *ArangoDB) MigrateWithSchema(ctx context.Context, schema []CollectionDef
 		}
 	}
 
+	if err := a.migrateLegacyReleaseDraftCollections(ctx); err != nil {
+		return fmt.Errorf("failed to migrate legacy release draft collections: %w", err)
+	}
+
 	log.Println("Database migration completed successfully")
+	return nil
+}
+
+func (a *ArangoDB) migrateLegacyReleaseDraftCollections(ctx context.Context) error {
+	hasReleaseDrafts, err := a.Database.CollectionExists(ctx, "ReleaseDrafts")
+	if err != nil {
+		return fmt.Errorf("check ReleaseDrafts existence: %w", err)
+	}
+	hasReleases, err := a.Database.CollectionExists(ctx, "Releases")
+	if err != nil {
+		return fmt.Errorf("check Releases existence: %w", err)
+	}
+	if hasReleaseDrafts && hasReleases {
+		q := /*aql*/ `
+			FOR draft IN ReleaseDrafts
+				LET doc = UNSET(
+					MERGE(draft, { status: HAS(draft, "status") ? draft.status : "draft" }),
+					"_id",
+					"_rev"
+				)
+				UPSERT { id: doc.id }
+					INSERT doc
+					UPDATE UNSET(doc, "_key")
+				IN Releases
+				RETURN NEW._key
+		`
+		if _, err := Query[string](ctx, a, q, nil); err != nil {
+			return fmt.Errorf("copy ReleaseDrafts into Releases: %w", err)
+		}
+		log.Println("Migrated legacy ReleaseDrafts into Releases")
+	}
+
+	hasTrackDrafts, err := a.Database.CollectionExists(ctx, "TrackDrafts")
+	if err != nil {
+		return fmt.Errorf("check TrackDrafts existence: %w", err)
+	}
+	hasTracks, err := a.Database.CollectionExists(ctx, "Tracks")
+	if err != nil {
+		return fmt.Errorf("check Tracks existence: %w", err)
+	}
+	if hasTrackDrafts && hasTracks {
+		q := /*aql*/ `
+			FOR track IN TrackDrafts
+				LET doc = UNSET(track, "_id", "_rev")
+				UPSERT { releaseKey: doc.releaseKey, id: doc.id }
+					INSERT doc
+					UPDATE UNSET(doc, "_key")
+				IN Tracks
+				RETURN NEW._key
+		`
+		if _, err := Query[string](ctx, a, q, nil); err != nil {
+			return fmt.Errorf("copy TrackDrafts into Tracks: %w", err)
+		}
+		log.Println("Migrated legacy TrackDrafts into Tracks")
+	}
+
 	return nil
 }
 
@@ -95,7 +159,7 @@ func (a *ArangoDB) ensureIndex(ctx context.Context, col driver.Collection, idx I
 			if existing.Unique() != idx.Unique || existing.Sparse() != idx.Sparse {
 				log.Printf("Index on %s: %v has different settings (unique: %v->%v, sparse: %v->%v), recreating...",
 					col.Name(), idx.Fields, existing.Unique(), idx.Unique, existing.Sparse(), idx.Sparse)
-				
+
 				// Delete the old index
 				if err := existing.Remove(ctx); err != nil {
 					return fmt.Errorf("failed to remove old index: %w", err)

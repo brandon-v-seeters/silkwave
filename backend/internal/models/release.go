@@ -23,10 +23,10 @@ type CreateReleaseRequest struct {
 	Slug        string    `json:"slug" binding:"required"`
 	ArtistKey   string    `json:"artistKey" binding:"required"`
 	Description string    `json:"description,omitempty"`
-	ReleaseDate time.Time `json:"releaseDate" binding:"required"`
+	PublishAt   time.Time `json:"publishAt" binding:"required"`
 	Cover       string    `json:"cover,omitempty"`
 	TrackCount  int       `json:"trackCount,omitempty"`
-	Hash        string    `json:"hash,omitempty"`
+	Id          string    `json:"id,omitempty"`
 	Genres      []string  `json:"genres,omitempty"`
 	Tracks      []Track   `json:"tracks,omitempty"`
 }
@@ -37,7 +37,7 @@ type UpdateReleaseRequest struct {
 	Slug        string     `json:"slug,omitempty"`
 	ArtistKey   string     `json:"artistKey,omitempty"`
 	Description string     `json:"description,omitempty"`
-	ReleaseDate *time.Time `json:"releaseDate,omitempty"`
+	PublishAt   *time.Time `json:"publishAt,omitempty"`
 	Cover       string     `json:"cover,omitempty"`
 	TrackCount  *int       `json:"trackCount,omitempty"`
 	Genres      []string   `json:"genres,omitempty"`
@@ -45,18 +45,16 @@ type UpdateReleaseRequest struct {
 }
 
 type ConfirmDraftReleaseRequest struct {
-	ArtistKey   string `json:"artistKey" binding:"required"`
-	ReleaseHash string `json:"releaseHash" binding:"required"`
+	ArtistKey string `json:"artistKey" binding:"required"`
+	ReleaseId string `json:"releaseId" binding:"required"`
 }
 
 type ReleaseStatus string
 
 const (
 	ReleaseStatusDraft     ReleaseStatus = "draft"
-	ReleaseStatusScheduled ReleaseStatus = "scheduled"
 	ReleaseStatusPublished ReleaseStatus = "published"
 	ReleaseStatusArchived  ReleaseStatus = "archived"
-	ReleaseStatusDeleted   ReleaseStatus = "deleted"
 )
 
 type LicenseType string
@@ -130,13 +128,13 @@ type CoverArtAsset struct {
 
 type ReleaseAssets struct {
 	CoverArt *CoverArtAsset `json:"coverArt"`
-	BasePath string         `json:"basePath"` // artist_content/{artistKey}/{hash}/
+	BasePath string         `json:"basePath"` // artist_content/{artistKey}/releases/{id}/
 }
 
 type ReleaseSchedule struct {
 	CreatedAt    time.Time  `json:"createdAt"`
 	UpdatedAt    time.Time  `json:"updatedAt"`
-	ReleaseDate  *time.Time `json:"releaseDate"`
+	PublishAt    *time.Time `json:"publishAt"`
 	PublishedAt  *time.Time `json:"publishedAt"`
 	PreOrderDate *time.Time `json:"preOrderDate"`
 }
@@ -145,8 +143,8 @@ type Release struct {
 	DocumentMeta `tstype:",extends"`
 
 	// Identifiers
-	Hash string `json:"hash"` // Public URL identifier
-	Slug string `json:"slug"` // SEO-friendly URL
+	Id   string `json:"id"`   // Stable external UUID for authenticated API paths.
+	Slug string `json:"slug"` // SEO-friendly public URL slug.
 
 	// Core info
 	Title       string        `json:"title"`
@@ -175,44 +173,43 @@ type Release struct {
 	CustomLicense *string     `json:"customLicense"`
 
 	// Flags
-	IsExplicit       bool      `json:"isExplicit"`
-	IsFeatured       bool      `json:"isFeatured"`
-	DownloadEnabled  bool      `json:"downloadEnabled"`
-	StreamingEnabled bool      `json:"streamingEnabled"`
-	ReleaseDate      time.Time `json:"releaseDate" binding:"required"`
-	Cover            string    `json:"cover,omitempty"`
-	Genres           []string  `json:"genres,omitempty"`
-	Published        bool      `json:"published"`
-	IsUploaded       bool      `json:"isUploaded"`
-	CreatedAt        time.Time `json:"createdAt"`
-	UpdatedAt        time.Time `json:"updatedAt"`
+	IsExplicit       bool                `json:"isExplicit"`
+	IsFeatured       bool                `json:"isFeatured"`
+	DownloadEnabled  bool                `json:"downloadEnabled"`
+	StreamingEnabled bool                `json:"streamingEnabled"`
+	Pending          *PendingReleaseEdit `json:"pending,omitempty"`
+	PublishAt        time.Time           `json:"publishAt" binding:"required"`
+	Cover            string              `json:"cover,omitempty"`
+	Genres           []string            `json:"genres,omitempty"`
+	CreatedAt        time.Time           `json:"createdAt"`
+	UpdatedAt        time.Time           `json:"updatedAt"`
 }
 
 type CreateDraftRequest struct {
-	ArtistKey string           `json:"artistKey"`
-	Title     string           `json:"title"`
+	ArtistKey string           `json:"artistKey" binding:"required"`
+	Title     string           `json:"title" binding:"required"`
 	Genres    []string         `json:"genres"`
-	Tracks    []TrackRequest   `json:"tracks"`
+	Tracks    []TrackRequest   `json:"tracks" binding:"required,dive"`
 	CoverArt  *CoverArtRequest `json:"coverArt"`
 }
 
 type TrackRequest struct {
-	Title    string `json:"title"`
-	FileName string `json:"fileName"`
-	FileType string `json:"fileType"`
-	FileSize int64  `json:"fileSize"`
+	Title    string `json:"title" binding:"required"`
+	FileName string `json:"fileName" binding:"required"`
+	FileType string `json:"fileType" binding:"required"`
+	FileSize int64  `json:"fileSize" binding:"required"`
 	Duration string `json:"duration"`
 	Order    int    `json:"order"`
 }
 
 type CoverArtRequest struct {
-	FileName string `json:"fileName"`
-	FileType string `json:"fileType"`
-	FileSize int64  `json:"fileSize"`
+	FileName string `json:"fileName" binding:"required"`
+	FileType string `json:"fileType" binding:"required"`
+	FileSize int64  `json:"fileSize" binding:"required"`
 }
 
 type CreateDraftResponse struct {
-	ReleaseHash   string           `json:"releaseHash"`
+	ReleaseId     string           `json:"releaseId"`
 	ReleaseKey    string           `json:"releaseKey"`
 	ArtistKey     string           `json:"artistKey"`
 	PresignedUrls PresignedUrlsDTO `json:"presignedUrls"`
@@ -224,26 +221,32 @@ type PresignedUrlsDTO struct {
 }
 
 type TrackUrlDTO struct {
-	Hash         string `json:"hash"`
+	Id           string `json:"id"`
 	FileName     string `json:"fileName"`
 	PresignedUrl string `json:"presignedUrl"`
 	StoragePath  string `json:"storagePath"`
 }
 
 type ConfirmUploadsRequest struct {
-	Tracks       []ConfirmedTrack `json:"tracks"`
+	Tracks       []ConfirmedTrack `json:"tracks" binding:"required,dive"`
 	CoverArtPath *string          `json:"coverArtPath"`
 }
 
 type ConfirmedTrack struct {
-	TrackID     string `json:"trackId"`
-	StoragePath string `json:"storagePath"`
+	TrackID     string `json:"trackId" binding:"required"`
+	StoragePath string `json:"storagePath" binding:"required"`
 }
 
 // ReleaseWithArtist represents a release with artist data joined
 type ReleaseWithArtist struct {
 	Release
 	Artist *Artist `json:"artist,omitempty"`
+}
+
+type PublicRelease struct {
+	Release `tstype:",extends"`
+	Artist  *Artist       `json:"artist,omitempty"`
+	Tracks  []PublicTrack `json:"tracks"`
 }
 
 // ReleasesResponse represents the response for listing releases

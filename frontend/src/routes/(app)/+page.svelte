@@ -16,11 +16,10 @@
 			title: 'Led by Ancient Light',
 			slug: 'led-by-ancient-light',
 			artistKey: 'koan-sound',
-			type: 'album',
-			releaseDate: Date.now(),
-			createdAt: Date.now(),
-			updatedAt: Date.now(),
-			published: true,
+			releaseType: 'album',
+			publishAt: new Date().toISOString(),
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString(),
 			artist: { name: 'KOAN Sound', slug: 'koan-sound' },
 			coverArt:
 				'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&h=600&fit=crop&q=80'
@@ -32,11 +31,10 @@
 			title: 'Midnight Echoes',
 			slug: 'midnight-echoes',
 			artistKey: 'neon-dreams',
-			type: 'ep',
-			releaseDate: Date.now(),
-			createdAt: Date.now(),
-			updatedAt: Date.now(),
-			published: true,
+			releaseType: 'ep',
+			publishAt: new Date().toISOString(),
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString(),
 			artist: { name: 'Neon Dreams', slug: 'neon-dreams' },
 			coverArt:
 				'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=600&h=600&fit=crop&q=80'
@@ -48,11 +46,10 @@
 			title: 'Electric Dreams',
 			slug: 'electric-dreams',
 			artistKey: 'synth-wave',
-			type: 'album',
-			releaseDate: Date.now(),
-			createdAt: Date.now(),
-			updatedAt: Date.now(),
-			published: true,
+			releaseType: 'album',
+			publishAt: new Date().toISOString(),
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString(),
 			artist: { name: 'Synth Wave', slug: 'synth-wave' },
 			coverArt:
 				'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&h=600&fit=crop&q=80'
@@ -64,11 +61,10 @@
 			title: 'Urban Nights',
 			slug: 'urban-nights',
 			artistKey: 'city-vibes',
-			type: 'single',
-			releaseDate: Date.now(),
-			createdAt: Date.now(),
-			updatedAt: Date.now(),
-			published: true,
+			releaseType: 'single',
+			publishAt: new Date().toISOString(),
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString(),
 			artist: { name: 'City Vibes', slug: 'city-vibes' },
 			coverArt:
 				'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&h=600&fit=crop&q=80'
@@ -80,11 +76,10 @@
 			title: 'Ocean Breeze',
 			slug: 'ocean-breeze',
 			artistKey: 'coastal-sounds',
-			type: 'ep',
-			releaseDate: Date.now(),
-			createdAt: Date.now(),
-			updatedAt: Date.now(),
-			published: true,
+			releaseType: 'ep',
+			publishAt: new Date().toISOString(),
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString(),
 			artist: { name: 'Coastal Sounds', slug: 'coastal-sounds' },
 			coverArt:
 				'https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=600&h=600&fit=crop&q=80'
@@ -96,18 +91,17 @@
 			title: 'Cosmic Journey',
 			slug: 'cosmic-journey',
 			artistKey: 'space-explorer',
-			type: 'album',
-			releaseDate: Date.now(),
-			createdAt: Date.now(),
-			updatedAt: Date.now(),
-			published: true,
+			releaseType: 'album',
+			publishAt: new Date().toISOString(),
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString(),
 			artist: { name: 'Space Explorer', slug: 'space-explorer' },
 			coverArt:
 				'https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=600&h=600&fit=crop&q=80'
 		}
 	];
 
-	let releases = $state<ReleaseWithArtist[]>(releasesMock as ReleaseWithArtist[]);
+	let releases = $state<ReleaseWithArtist[]>(releasesMock as unknown as ReleaseWithArtist[]);
 	let isLoading = $state(true);
 	let error = $state<string | null>(null);
 
@@ -126,7 +120,7 @@
 		// } finally {
 		// 	isLoading = false;
 		// }
-		releases = releasesMock as ReleaseWithArtist[];
+		releases = releasesMock as unknown as ReleaseWithArtist[];
 		isLoading = false;
 	});
 

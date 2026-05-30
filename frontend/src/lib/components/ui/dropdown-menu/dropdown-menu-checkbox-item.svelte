@@ -4,6 +4,11 @@
 	import Minus from '@lucide/svelte/icons/minus';
 	import { cn } from '$lib/utils/utils';
 
+	type CheckboxChildrenProps = {
+		checked: boolean;
+		indeterminate: boolean;
+	};
+
 	let {
 		ref = $bindable(null),
 		checked = $bindable(false),
@@ -22,14 +27,14 @@
 	)}
 	{...restProps}
 >
-	{#snippet children({ checked })}
+	{#snippet children({ checked, indeterminate }: CheckboxChildrenProps)}
 		<span class="absolute left-2 flex size-3.5 items-center justify-center">
-			{#if checked === 'indeterminate'}
+			{#if indeterminate}
 				<Minus class="size-4" />
 			{:else}
 				<Check class={cn('size-4', !checked && 'text-transparent')} />
 			{/if}
 		</span>
-		{@render childrenProp?.({ checked })}
+		{@render childrenProp?.({ checked, indeterminate })}
 	{/snippet}
 </DropdownMenuPrimitive.CheckboxItem>
