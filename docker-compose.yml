@@ -1,0 +1,82 @@
+name: silkwave-local
+
+services:
+  arangodb:
+    image: arangodb:3.11.14
+    restart: unless-stopped
+    ports:
+      - "${SILKWAVE_ARANGO_PORT:-18529}:8529"
+    environment:
+      ARANGO_ROOT_PASSWORD: ${SILKWAVE_ARANGO_PASSWORD:-silkwave-dev}
+      ARANGO_NO_AUTH: "0"
+    volumes:
+      - silkwave_arangodb_data:/var/lib/arangodb3
+      - silkwave_arangodb_apps:/var/lib/arangodb3-apps
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "arangosh --server.endpoint http+tcp://127.0.0.1:8529 --server.username root --server.password $$ARANGO_ROOT_PASSWORD --javascript.execute-string 'db._version()' >/dev/null 2>&1"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  backend:
+    image: golang:1.25-bookworm
+    working_dir: /app/backend
+    depends_on:
+      arangodb:
+        condition: service_healthy
+    ports:
+      - "${SILKWAVE_API_PORT:-8088}:8080"
+    environment:
+      GO_ENV: development
+      SERVER_PORT: "8080"
+      ARANGO_ENDPOINT: http://arangodb:8529
+      ARANGO_DATABASE: silk_wave
+      ARANGO_USERNAME: root
+      ARANGO_PASSWORD: ${SILKWAVE_ARANGO_PASSWORD:-silkwave-dev}
+      JWT_SECRET: ${SILKWAVE_JWT_SECRET:-silkwave-local-jwt-secret}
+      PASSWORD_SECRET: ${SILKWAVE_PASSWORD_SECRET:-silkwave-local-password-secret}
+      R2_ACCOUNT_ID: ${SILKWAVE_R2_ACCOUNT_ID:-local-dev-account}
+      R2_ACCESS_KEY_ID: ${SILKWAVE_R2_ACCESS_KEY_ID:-local-dev-access-key}
+      R2_SECRET_ACCESS_KEY: ${SILKWAVE_R2_SECRET_ACCESS_KEY:-local-dev-secret-key}
+      R2_BUCKET_NAME: ${SILKWAVE_R2_BUCKET_NAME:-silkwave-local}
+      GOCACHE: /tmp/go-build
+      GOPATH: /go
+      PATH: /usr/local/go/bin:/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    volumes:
+      - .:/app
+      - silkwave_go_pkg:/go/pkg
+    command: >
+      sh -c "go mod download &&
+      go run cmd/migrate/main.go &&
+      go run cmd/server/main.go"
+
+  frontend:
+    image: node:22-bookworm
+    working_dir: /app/frontend
+    depends_on:
+      - backend
+    ports:
+      - "${SILKWAVE_FRONTEND_PORT:-4173}:4173"
+    environment:
+      PUBLIC_API_URL: /api
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+      COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+    volumes:
+      - .:/app
+      - silkwave_frontend_node_modules:/app/frontend/node_modules
+    command: >
+      sh -c "corepack enable &&
+      corepack pnpm install --frozen-lockfile &&
+      corepack pnpm dev -- --host 0.0.0.0 --port 4173"
+
+volumes:
+  silkwave_arangodb_data:
+  silkwave_arangodb_apps:
+  silkwave_go_pkg:
+  silkwave_frontend_node_modules:
