@@ -48,24 +48,14 @@
 	let volume = $state(0.85);
 	let isMuted = $state(false);
 
-	let currentIndex = $derived(
-		tracks.findIndex((track) => track.id === currentTrackId)
-	);
-	let currentTrack = $derived(
-		tracks[currentIndex >= 0 ? currentIndex : 0] ?? null
-	);
+	let currentIndex = $derived(tracks.findIndex((track) => track.id === currentTrackId));
+	let currentTrack = $derived(tracks[currentIndex >= 0 ? currentIndex : 0] ?? null);
 	let source = $derived(resolveTrackSource(currentTrack));
-	let resolvedArtwork = $derived(
-		currentTrack?.artworkUrl || artworkUrl || null
-	);
+	let resolvedArtwork = $derived(currentTrack?.artworkUrl || artworkUrl || null);
 	let duration = $derived(
-		normaliseDuration(measuredDuration) ||
-			normaliseDuration(currentTrack?.duration) ||
-			0
+		normaliseDuration(measuredDuration) || normaliseDuration(currentTrack?.duration) || 0
 	);
-	let progress = $derived(
-		duration > 0 ? Math.min((currentTime / duration) * 100, 100) : 0
-	);
+	let progress = $derived(duration > 0 ? Math.min((currentTime / duration) * 100, 100) : 0);
 	let volumeProgress = $derived(isMuted ? 0 : volume * 100);
 	let canPlay = $derived(Boolean(source));
 	let canSkip = $derived(tracks.length > 1);
@@ -75,9 +65,7 @@
 			: 'Audio preview unavailable for this track.'
 	);
 	let displayTitle = $derived(currentTrack?.title || releaseTitle);
-	let displayArtist = $derived(
-		currentTrack?.artistName || artistName || 'Unknown artist'
-	);
+	let displayArtist = $derived(currentTrack?.artistName || artistName || 'Unknown artist');
 
 	$effect(() => {
 		const fallbackId = tracks[0]?.id ?? null;
@@ -157,8 +145,7 @@
 	function previousTrack() {
 		if (!canSkip) return;
 
-		const nextIndex =
-			currentIndex <= 0 ? tracks.length - 1 : currentIndex - 1;
+		const nextIndex = currentIndex <= 0 ? tracks.length - 1 : currentIndex - 1;
 		void selectTrack(nextIndex);
 	}
 
@@ -223,10 +210,8 @@
 	<section
 		aria-label={label}
 		class={cn(
-			'pointer-events-auto w-full rounded-lg border border-border/75 bg-background/[0.94] text-foreground shadow-2xl shadow-foreground/10 backdrop-blur-xl dark:border-white/10 dark:bg-card/[0.9] dark:shadow-black/45',
-			placement === 'floating'
-				? 'max-w-[960px] p-3 sm:p-4'
-				: 'p-4'
+			'pointer-events-auto w-full rounded-lg border border-border/60 bg-background/76 text-foreground shadow-2xl shadow-foreground/10 backdrop-blur-xl dark:border-white/10 dark:bg-card/70 dark:shadow-black/45',
+			placement === 'floating' ? 'max-w-240 p-3 sm:p-4' : 'p-4'
 		)}
 		style={`--media-progress: ${progress}%; --volume-progress: ${volumeProgress}%;`}
 	>
@@ -241,24 +226,19 @@
 			onplay={() => (isPlaying = true)}
 		></audio>
 
-		<div class="grid gap-3 md:grid-cols-[minmax(0,260px)_minmax(180px,1fr)_auto] md:items-center">
+		<div
+			class="grid gap-3 md:grid-cols-[minmax(0,260px)_minmax(180px,1fr)_auto] md:items-center"
+		>
 			<div class="flex min-w-0 items-center gap-3">
 				<div
 					class="relative h-12 w-12 shrink-0 overflow-hidden rounded-md border border-border/80 bg-muted shadow-sm sm:h-14 sm:w-14"
 					aria-hidden="true"
 				>
 					{#if resolvedArtwork}
-						<img
-							src={resolvedArtwork}
-							alt=""
-							class="h-full w-full object-cover"
-						/>
+						<img src={resolvedArtwork} alt="" class="h-full w-full object-cover" />
 					{:else}
 						<div class="flex h-full w-full items-center justify-center">
-							<Icon
-								icon="music-note-2"
-								class="h-5 w-5 fill-muted-foreground"
-							/>
+							<Icon icon="music-note-2" class="h-5 w-5 fill-muted-foreground" />
 						</div>
 					{/if}
 				</div>
@@ -270,11 +250,6 @@
 					<p class="truncate text-xs leading-5 text-muted-foreground">
 						{displayArtist}
 					</p>
-					{#if !canPlay}
-						<p class="mt-0.5 truncate text-[0.6875rem] font-medium leading-4 text-muted-foreground">
-							{unavailableMessage}
-						</p>
-					{/if}
 				</div>
 			</div>
 

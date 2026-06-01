@@ -9,16 +9,16 @@
 			variant: {
 				default: 'bg-foreground text-background hover:bg-foreground/80 shadow-inset-top',
 				primary:
-					'bg-primary text-primary-foreground hover:bg-primary/90 shadow-inset-top-lg',
+					'silkwave-texture-button bg-primary text-primary-foreground hover:bg-primary/95 shadow-inset-top-lg',
 				destructive:
 					'bg-destructive text-foreground hover:bg-destructive/90 shadow-inset-top',
 				outline:
 					'border-input bg-background hover:bg-accent hover:text-accent-foreground border',
-				secondary: 'bg-foreground/5 text-foreground hover:opacity-80 shadow-inset-top-sm',
+				secondary: 'bg-foreground/10 text-foreground hover:opacity-80 shadow-inset-top-sm',
 				ghost: 'hover:bg-accent hover:text-accent-foreground',
 				link: 'text-primary underline-offset-4 hover:underline',
 				gradient:
-					'bg-primary-gradient text-primary-foreground hover:brightness-110 transition-all duration-300 shadow-inset-top-lg'
+					'silkwave-texture-button text-primary-foreground hover:brightness-110 transition-all duration-300 shadow-inset-top-lg'
 			},
 			size: {
 				default: 'h-12 px-4 py-2 rounded-lg',

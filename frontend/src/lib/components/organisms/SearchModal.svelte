@@ -48,9 +48,7 @@
 	let imageErrors = $state<string[]>([]);
 
 	let trimmedQuery = $derived(searchQuery.trim());
-	let canSearchReleases = $derived(
-		selectedCategory === 'all' || selectedCategory === 'releases'
-	);
+	let canSearchReleases = $derived(selectedCategory === 'all' || selectedCategory === 'releases');
 	let shouldSearch = $derived(open && trimmedQuery.length > 0 && canSearchReleases);
 
 	function handleSearch() {
@@ -131,10 +129,9 @@
 		error = null;
 
 		try {
-			const response = await fetch(
-				`/api/releases?q=${encodeURIComponent(query)}&limit=8`,
-				{ signal }
-			);
+			const response = await fetch(`/api/releases?q=${encodeURIComponent(query)}&limit=8`, {
+				signal
+			});
 			const payload = (await response.json()) as ApiEnvelope<SearchReleasesPayload> &
 				SearchReleasesPayload;
 
@@ -224,8 +221,12 @@
 
 					<div class="max-h-[60vh] min-h-80 overflow-y-auto p-4">
 						{#if !trimmedQuery}
-							<div class="flex h-full min-h-64 flex-col items-center justify-center text-center">
-								<div class="mb-4 flex h-14 w-14 items-center justify-center rounded-lg bg-primary/10">
+							<div
+								class="flex h-full min-h-64 flex-col items-center justify-center text-center"
+							>
+								<div
+									class="mb-4 flex h-14 w-14 items-center justify-center rounded-lg bg-primary/10"
+								>
 									<Icon icon="music-note-2" class="h-7 w-7 fill-primary" />
 								</div>
 								<h3 class="text-lg font-medium text-foreground">Search releases</h3>
@@ -234,12 +235,18 @@
 								</p>
 							</div>
 						{:else if !canSearchReleases}
-							<div class="flex h-full min-h-64 flex-col items-center justify-center text-center">
-								<div class="mb-4 flex h-14 w-14 items-center justify-center rounded-lg bg-foreground/5">
+							<div
+								class="flex h-full min-h-64 flex-col items-center justify-center text-center"
+							>
+								<div
+									class="mb-4 flex h-14 w-14 items-center justify-center rounded-lg bg-foreground/5"
+								>
 									<Icon icon="search" class="h-7 w-7 fill-foreground-muted" />
 								</div>
 								<h3 class="text-lg font-medium text-foreground">
-									{categories.find((category) => category.value === selectedCategory)?.label}
+									{categories.find(
+										(category) => category.value === selectedCategory
+									)?.label}
 									search is not available yet.
 								</h3>
 								<p class="mt-2 max-w-sm text-base text-foreground-muted">
@@ -248,18 +255,30 @@
 							</div>
 						{:else if isLoading}
 							<div class="flex min-h-64 items-center justify-center">
-								<Icon icon="loader-2" class="h-8 w-8 animate-spin fill-foreground-muted" />
+								<Icon
+									icon="loader-2"
+									class="h-8 w-8 animate-spin fill-foreground-muted"
+								/>
 							</div>
 						{:else if error}
 							<div class="rounded-lg bg-rose-500/10 p-6 text-center text-rose-400">
 								<p>{error}</p>
 							</div>
 						{:else if releases.length === 0}
-							<div class="flex min-h-64 flex-col items-center justify-center text-center">
-								<div class="mb-4 flex h-14 w-14 items-center justify-center rounded-lg bg-foreground/5">
-									<Icon icon="music-note-2" class="h-7 w-7 fill-foreground-muted" />
+							<div
+								class="flex min-h-64 flex-col items-center justify-center text-center"
+							>
+								<div
+									class="mb-4 flex h-14 w-14 items-center justify-center rounded-lg bg-foreground/5"
+								>
+									<Icon
+										icon="music-note-2"
+										class="h-7 w-7 fill-foreground-muted"
+									/>
 								</div>
-								<h3 class="text-lg font-medium text-foreground">No releases found</h3>
+								<h3 class="text-lg font-medium text-foreground">
+									No releases found
+								</h3>
 								<p class="mt-2 max-w-sm text-base text-foreground-muted">
 									No published Releases matched "{trimmedQuery}".
 								</p>
@@ -271,11 +290,13 @@
 									{@const href = releaseHref(release)}
 									{#if href}
 										<a
-											href={href}
+											{href}
 											onclick={() => (open = false)}
 											class="group flex w-full items-center gap-3 rounded-lg border border-border bg-background p-3 text-left transition-colors hover:bg-accent"
 										>
-											<div class="h-12 w-12 shrink-0 overflow-hidden rounded-md bg-primary/10">
+											<div
+												class="h-12 w-12 shrink-0 overflow-hidden rounded-md bg-primary/10"
+											>
 												{#if coverArt && !imageErrors.includes(coverArt)}
 													<img
 														src={coverArt}
@@ -284,18 +305,29 @@
 														onerror={() => handleImageError(coverArt)}
 													/>
 												{:else}
-													<div class="flex h-full w-full items-center justify-center">
-														<Icon icon="music-note-2" class="h-6 w-6 fill-primary" />
+													<div
+														class="flex h-full w-full items-center justify-center"
+													>
+														<Icon
+															icon="music-note-2"
+															class="h-6 w-6 fill-primary"
+														/>
 													</div>
 												{/if}
 											</div>
 
 											<div class="min-w-0 flex-1">
-												<div class="truncate font-medium group-hover:text-primary">
+												<div
+													class="truncate font-medium group-hover:text-primary"
+												>
 													{release.title}
 												</div>
-												<div class="mt-1 truncate text-base text-foreground-muted">
-													{release.artist?.name ?? 'Unknown Artist'} · {releaseKind(release)}
+												<div
+													class="mt-1 truncate text-base text-foreground-muted"
+												>
+													{release.artist?.name ?? 'Unknown Artist'} · {releaseKind(
+														release
+													)}
 												</div>
 											</div>
 										</a>

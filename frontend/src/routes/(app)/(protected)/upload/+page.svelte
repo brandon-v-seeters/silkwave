@@ -50,7 +50,7 @@
 				<Form.FieldErrors />
 			</Form.Field>
 			<FormErrors {form} />
-			<Button type="submit" variant="primary" disabled={$delayed} class="w-fit">
+			<Button type="submit" variant="gradient" disabled={$delayed} class="w-fit">
 				{#if $delayed}
 					<Icon icon="loader-2" class="mr-2 h-4 w-4 animate-spin" />
 				{/if}
@@ -67,7 +67,11 @@
 					Create a release from scratch or pick up a draft.
 				</p>
 			</div>
-			<Button variant="primary" href="/upload/release" class="w-full justify-center md:w-fit">
+			<Button
+				variant="gradient"
+				href="/upload/release"
+				class="w-full justify-center md:w-fit"
+			>
 				<Icon icon="music-note-2" class="h-5 w-5" />
 				Create a new release
 			</Button>
@@ -86,7 +90,7 @@
 					<div class="flex flex-col items-center justify-center gap-3 p-6">
 						<Icon icon="file-text" variant="line" class="h-6 w-6 fill-foreground" />
 						<p class="text-sm text-foreground-muted">No drafts yet.</p>
-						<Button variant="outline" href="/upload/release">
+						<Button variant="gradient" href="/upload/release">
 							<Icon icon="plus" variant="line" class="h-5 w-5 fill-foreground" />
 							Create a new release
 						</Button>

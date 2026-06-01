@@ -1,124 +1,94 @@
 <script lang="ts">
-	import { page } from '$app/stores';
-	import { Button } from '$lib/components/ui/button/index';
-	import { crossfade } from 'svelte/transition';
+	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
+	import DarkModeToggle from '$lib/components/atoms/DarkModeToggle.svelte';
+	import Button from '$lib/components/ui/button/button.svelte';
 	import { cn } from '$lib/utils/utils.js';
-	import { cubicInOut } from 'svelte/easing';
-	import type { WithElementRef } from 'bits-ui';
-	import type { HTMLInputAttributes } from 'svelte/elements';
-	import { ARTIST_PROFILE_ROUTES } from '$lib/constants/routes';
-	import Icon from '$lib/components/atoms/Icon.svelte';
+	import { Search } from '@lucide/svelte';
+	import type { LayoutProps } from './$types';
 
-	let { children, class: className }: WithElementRef<HTMLInputAttributes> = $props();
+	let { data, children, params }: LayoutProps = $props();
 
-	const [send, receive] = crossfade({
-		duration: 250,
-		easing: cubicInOut
-	});
-
-	const { artist } = $page.data.user ?? {};
-	const isUserArtist = $derived(artist !== undefined && artist !== null);
+	const artist = $derived(data.artist);
+	const artistHref = $derived(
+		resolve('/artist/[artistSlug]', { artistSlug: artist?.slug ?? params.artistSlug ?? '' })
+	);
+	const discoverHref = resolve('/discover');
+	const isArtistHome = $derived(page.url.pathname === artistHref);
+	const artistInitial = $derived(artist?.name?.trim().slice(0, 1).toUpperCase() || 'S');
 </script>
 
-<div class="relative" data-name="a">
-	<div class="relative flex h-full max-h-96 w-full">
-		{#if isUserArtist}
-			<div
-				class="group absolute right-0 top-0 flex h-full w-full cursor-pointer items-center justify-center transition-colors duration-300 hover:bg-black/20"
-			>
-				<Icon
-					icon="edit-2"
-					class="z-10 h-8 w-8 fill-white opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-				/>
-			</div>
-		{/if}
-		<img src="/banner.jpg" alt="Banner" class="object-cover" />
-	</div>
-	<div class="grid grid-cols-1 px-4 md:gap-6 md:px-10 lg:grid-cols-6">
-		<div class="relative col-span-1 flex flex-col gap-4 pt-[75px] md:col-span-2">
-			<div class="absolute -top-20 flex flex-row">
-				<div class="relative h-40 w-40 overflow-hidden rounded-lg">
-					{#if isUserArtist}
-						<div
-							class="group absolute left-0 top-0 flex h-full w-full cursor-pointer items-center justify-center transition-colors duration-300 hover:bg-black/20"
-						>
-							<Icon
-								icon="edit-2"
-								class="z-10 h-8 w-8 fill-white opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-							/>
-						</div>
-					{/if}
-					<img class="h-full w-full object-cover" src="/avatar.jpg" alt="Avatar" />
-				</div>
-				<div class="ml-4 mt-auto flex flex-row space-x-2 md:hidden">
-					<Button variant="ghost">
-						<Icon icon="comment-2-plus" class="h-5 w-5 fill-foreground" />
-					</Button>
-				</div>
-			</div>
-			<div class="mt-4">
-				<h1 class="text-2xl font-semibold">{artist?.name}</h1>
-				<p class="text-foreground-muted mt-1 font-medium leading-relaxed">
-					{artist?.bio || 'Creating music production tutorials & resources'}
-				</p>
-				{#if !isUserArtist}
-					<Button class="mt-4" variant="gradient">
-						Join {artist?.name}
-					</Button>
-				{/if}
-				<Button variant="ghost" class="mt-4 hidden md:block">
-					<Icon icon="comment-2-plus" class="h-6 w-6 fill-foreground" />
-				</Button>
-			</div>
-		</div>
-		<div class="overflow-hidden pt-6 md:col-span-4">
-			<nav
-				class={cn(
-					'no-scrollbar flex flex-row items-center space-x-1 overflow-x-auto lg:space-x-2 lg:space-y-1',
-					className
-				)}
-			>
-				{#each ARTIST_PROFILE_ROUTES as item}
-					{@const href = `/${artist?.slug}${item.href}`}
-					{@const isActive = $page.url.pathname === href}
-					<Button
-						{href}
-						variant="ghost"
-						class={cn(
-							isActive ? 'bg-muted' : '',
-							'relative justify-start hover:bg-muted'
-						)}
-						data-sveltekit-noscroll
+<div class="min-h-dvh bg-background text-foreground">
+	<header
+		class="sticky top-0 z-40 border-b border-border/70 bg-background/90 backdrop-blur-xl"
+	>
+		<div
+			class="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8"
+		>
+			<div class="flex min-w-0 items-center gap-3">
+				<a
+					href={resolve('/')}
+					class="shrink-0 text-sm font-semibold tracking-tight text-foreground transition hover:text-primary"
+				>
+					Silkwave
+				</a>
+				<span class="hidden h-4 w-px bg-border sm:block" aria-hidden="true"></span>
+				<a
+					href={resolve('/artist/[artistSlug]', {
+						artistSlug: artist?.slug ?? params.artistSlug ?? ''
+					})}
+					class="group flex min-w-0 items-center gap-2 rounded-md px-1.5 py-1 transition hover:bg-muted"
+				>
+					<span
+						class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border bg-card text-xs font-semibold text-card-foreground"
+						aria-hidden="true"
 					>
-						{#if isActive}
-							<div
-								class="absolute inset-0 rounded-md bg-muted"
-								in:send={{ key: 'active-sidebar-tab' }}
-								out:receive={{ key: 'active-sidebar-tab' }}
-							></div>
-						{/if}
-						<div class="relative">
-							{item.title}
-						</div>
-					</Button>
-				{/each}
-			</nav>
-			<div class="mt-6">
-				{@render children?.()}
+						{artistInitial}
+					</span>
+					<span class="min-w-0 truncate text-sm font-medium text-muted-foreground group-hover:text-foreground">
+						{artist?.name ?? 'Artist'}
+					</span>
+				</a>
+			</div>
+
+			<div class="flex shrink-0 items-center gap-1.5">
+				<nav class="hidden items-center gap-1 sm:flex" aria-label="Artist navigation">
+					<a
+						href={resolve('/artist/[artistSlug]', {
+							artistSlug: artist?.slug ?? params.artistSlug ?? ''
+						})}
+						class={cn(
+							'rounded-md px-3 py-2 text-sm font-medium transition',
+							isArtistHome
+								? 'bg-muted text-foreground'
+								: 'text-muted-foreground hover:bg-muted hover:text-foreground'
+						)}
+						aria-current={isArtistHome ? 'page' : undefined}
+					>
+						Profile
+					</a>
+					<a
+						href={discoverHref}
+						class="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground"
+					>
+						Discover
+					</a>
+				</nav>
+				<Button
+					href={discoverHref}
+					variant="ghost"
+					size="icon"
+					class="rounded-md"
+					aria-label="Search music"
+				>
+					<Search class="h-4 w-4" aria-hidden="true" />
+				</Button>
+				<DarkModeToggle class="rounded-md" />
 			</div>
 		</div>
-	</div>
+	</header>
+
+	<main class="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
+		{@render children?.()}
+	</main>
 </div>
-
-<style>
-	/* Hide scrollbar for Chrome, Safari and Opera */
-	.no-scrollbar::-webkit-scrollbar {
-		display: none;
-	}
-
-	/* Hide scrollbar for IE, Edge and Firefox */
-	.no-scrollbar {
-		-ms-overflow-style: none; /* IE and Edge */
-		scrollbar-width: none; /* Firefox */
-	}
-</style>

@@ -1,171 +1,160 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import type { Release } from '$lib/types/generated/models';
 	import Icon from '$lib/components/atoms/Icon.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
-	import HeroCarousel from '$lib/components/organisms/HeroCarousel.svelte';
-	import ReleasesGrid from '$lib/components/organisms/ReleasesGrid.svelte';
+	import { resolve } from '$app/paths';
 
-	type ReleaseWithArtist = Release & { artist?: { name: string; slug: string } };
-
-	const releasesMock = [
+	const releaseCards = [
 		{
-			_id: '1',
-			_key: '1',
-			_rev: '1',
-			title: 'Led by Ancient Light',
-			slug: 'led-by-ancient-light',
-			artistKey: 'koan-sound',
-			releaseType: 'album',
-			publishAt: new Date().toISOString(),
-			createdAt: new Date().toISOString(),
-			updatedAt: new Date().toISOString(),
-			artist: { name: 'KOAN Sound', slug: 'koan-sound' },
-			coverArt:
-				'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&h=600&fit=crop&q=80'
+			title: 'Vocal Studies and Upro...',
+			artist: 'Prefuse 73',
+			image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500&h=500&fit=crop&q=80',
+			tint: 'linear-gradient(135deg, #b9f5ff, #5b84e5)'
 		},
 		{
-			_id: '2',
-			_key: '2',
-			_rev: '2',
-			title: 'Midnight Echoes',
-			slug: 'midnight-echoes',
-			artistKey: 'neon-dreams',
-			releaseType: 'ep',
-			publishAt: new Date().toISOString(),
-			createdAt: new Date().toISOString(),
-			updatedAt: new Date().toISOString(),
-			artist: { name: 'Neon Dreams', slug: 'neon-dreams' },
-			coverArt:
-				'https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=600&h=600&fit=crop&q=80'
+			title: 'Temples',
+			artist: 'Lone',
+			image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&h=500&fit=crop&q=80',
+			tint: 'linear-gradient(135deg, #1c2d59, #8aa6ff)'
 		},
 		{
-			_id: '3',
-			_key: '3',
-			_rev: '3',
-			title: 'Electric Dreams',
-			slug: 'electric-dreams',
-			artistKey: 'synth-wave',
-			releaseType: 'album',
-			publishAt: new Date().toISOString(),
-			createdAt: new Date().toISOString(),
-			updatedAt: new Date().toISOString(),
-			artist: { name: 'Synth Wave', slug: 'synth-wave' },
-			coverArt:
-				'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&h=600&fit=crop&q=80'
+			title: 'Earth Tones',
+			artist: 'Lenzman',
+			image: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=500&h=500&fit=crop&q=80',
+			tint: 'linear-gradient(135deg, #c8d8dd, #3f8d9e)'
 		},
 		{
-			_id: '4',
-			_key: '4',
-			_rev: '4',
-			title: 'Urban Nights',
-			slug: 'urban-nights',
-			artistKey: 'city-vibes',
-			releaseType: 'single',
-			publishAt: new Date().toISOString(),
-			createdAt: new Date().toISOString(),
-			updatedAt: new Date().toISOString(),
-			artist: { name: 'City Vibes', slug: 'city-vibes' },
-			coverArt:
-				'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600&h=600&fit=crop&q=80'
+			title: 'Kollections 06',
+			artist: 'VA',
+			image: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=500&h=500&fit=crop&q=80',
+			tint: 'linear-gradient(135deg, #0c1118, #f4762f)'
 		},
 		{
-			_id: '5',
-			_key: '5',
-			_rev: '5',
-			title: 'Ocean Breeze',
-			slug: 'ocean-breeze',
-			artistKey: 'coastal-sounds',
-			releaseType: 'ep',
-			publishAt: new Date().toISOString(),
-			createdAt: new Date().toISOString(),
-			updatedAt: new Date().toISOString(),
-			artist: { name: 'Coastal Sounds', slug: 'coastal-sounds' },
-			coverArt:
-				'https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=600&h=600&fit=crop&q=80'
+			title: 'Dance It Away',
+			artist: 'Donna',
+			image: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=500&h=500&fit=crop&q=80',
+			tint: 'linear-gradient(135deg, #171717, #6f6b65)'
 		},
 		{
-			_id: '6',
-			_key: '6',
-			_rev: '6',
-			title: 'Cosmic Journey',
-			slug: 'cosmic-journey',
-			artistKey: 'space-explorer',
-			releaseType: 'album',
-			publishAt: new Date().toISOString(),
-			createdAt: new Date().toISOString(),
-			updatedAt: new Date().toISOString(),
-			artist: { name: 'Space Explorer', slug: 'space-explorer' },
-			coverArt:
-				'https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=600&h=600&fit=crop&q=80'
+			title: 'Moon Circuit',
+			artist: 'Nujabes Study',
+			image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&h=500&fit=crop&q=80',
+			tint: 'linear-gradient(135deg, #111827, #f8fafc)'
+		},
+		{
+			title: 'Late Checkout',
+			artist: 'Mara TK',
+			image: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=500&h=500&fit=crop&q=80',
+			tint: 'linear-gradient(135deg, #f2c4b3, #4338ca)'
+		},
+		{
+			title: 'Soft Static',
+			artist: 'Caldera',
+			image: 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=500&h=500&fit=crop&q=80',
+			tint: 'linear-gradient(135deg, #2dd4bf, #111827)'
 		}
 	];
 
-	let releases = $state<ReleaseWithArtist[]>(releasesMock as unknown as ReleaseWithArtist[]);
-	let isLoading = $state(true);
-	let error = $state<string | null>(null);
+	const collectionStats = ['50,056 Likes', '213 Songs', '13 hr 7 min'];
 
-	onMount(async () => {
-		// try {
-		// 	const response = await fetch('/api/releases?limit=12');
-		// 	const data = await response.json();
-		// 	if (data.error) {
-		// 		error = data.error;
-		// 	} else {
-		// 		releases = data.releases || releasesMock;
-		// 	}
-		// } catch (e) {
-		// 	error = 'Failed to load releases';
-		// 	console.error(e);
-		// } finally {
-		// 	isLoading = false;
-		// }
-		releases = releasesMock as unknown as ReleaseWithArtist[];
-		isLoading = false;
-	});
-
-	function formatDate(timestamp: number) {
-		return new Date(timestamp).toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: 'long',
-			day: 'numeric'
-		});
-	}
+	const discoverHref = resolve('/discover');
 </script>
 
 <svelte:head>
-	<title>Silk Wave - Latest Releases</title>
+	<title>Silkwave - New Releases</title>
 </svelte:head>
 
-{#if import.meta.env.PROD}
-	<div class="flex h-screen w-full flex-1 flex-col items-center justify-center bg-background">
-		<h1 class="text-4xl font-bold">Silk Wave</h1>
-		<p class="text-lg text-foreground-muted">Coming soon...</p>
+<div class="space-y-8">
+	<div class="mt-4 flex items-center gap-4 overflow-x-auto">
+		<a href={resolve('/')} class="shrink-0 font-semibold text-foreground">New Releases</a>
+		<a
+			href={resolve('/discover')}
+			class="shrink-0 text-muted-foreground transition hover:text-foreground"
+		>
+			News Feed
+		</a>
+		<a
+			href={resolve('/discover?shuffle=true' as '/')}
+			class="shrink-0 text-muted-foreground transition hover:text-foreground"
+		>
+			Shuffle Play
+		</a>
 	</div>
-{:else}
-	<div class="space-y-6 sm:space-y-8 md:space-y-12">
-		<!-- Hero Carousel -->
-		<div class="mb-4 sm:mb-6 md:mb-8">
-			<HeroCarousel />
-		</div>
+	<section
+		class="relative isolate overflow-hidden rounded-[1.55rem] px-6 py-7 text-white shadow-[0_18px_50px_rgba(244,116,72,0.25)] sm:min-h-72 sm:px-8 sm:py-8"
+	>
+		<div
+			class="absolute inset-y-0 right-0 -z-10 hidden w-[58%] bg-cover bg-center opacity-85 mix-blend-multiply md:block"
+			style="background-image: linear-gradient(90deg, rgba(244,116,72,0), rgba(244,116,72,0.12)), url('/producer.jpg');"
+		></div>
+		<div
+			class="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_90%_50%,rgba(255,255,255,0.26),transparent_26%),linear-gradient(90deg,rgba(244,116,72,0.98),rgba(244,116,72,0.84)_44%,rgba(244,116,72,0.2))]"
+		></div>
 
-		<!-- Fresh Picks Section -->
-		<div class="mb-6 sm:mb-8 md:mb-12">
-			<ReleasesGrid {releases} title="Fresh picks for you" />
-		</div>
-
-		<!-- Artists You Might Like Section -->
-		<div class="mb-6 sm:mb-8 md:mb-12">
-			<ReleasesGrid {releases} title="Artists you might like" />
-		</div>
-
-		<!-- Load More Button -->
-		{#if releases.length >= 12}
-			<div class="mt-4 text-center sm:mt-6 md:mt-8">
-				<Button href="/discover" variant="outline" class="w-full sm:w-auto">
-					View More Releases
-				</Button>
+		<div class="flex h-full max-w-lg flex-col justify-between gap-10">
+			<div>
+				<p class="text-[0.66rem] font-bold uppercase tracking-[0.14em] text-white/82">
+					Curated playlist
+				</p>
+				<h1 class="mt-8 max-w-sm text-4xl font-black tracking-tight text-white sm:text-5xl">
+					R&B Hits
+				</h1>
+				<p class="mt-3 max-w-xs text-sm leading-relaxed text-white/82">
+					Hot shot, confessions, deep cuts and studio-born grooves for late uploads.
+				</p>
 			</div>
-		{/if}
-	</div>
-{/if}
+
+			<div class="flex flex-wrap items-center gap-2 text-[0.72rem] text-white/82">
+				<span class="flex h-6 w-6 items-center justify-center rounded-md bg-white/18">
+					<Icon icon="heart" class="h-3.5 w-3.5 fill-current" />
+				</span>
+				{#each collectionStats as stat, index (stat)}
+					<span>{stat}</span>
+					{#if index < collectionStats.length - 1}
+						<span class="text-white/45">•</span>
+					{/if}
+				{/each}
+			</div>
+		</div>
+
+		<div class="mt-6 flex items-center gap-2 lg:absolute lg:bottom-6 lg:right-6 lg:mt-0">
+			<Button variant="primary" class="rounded-full px-5">Play now</Button>
+		</div>
+	</section>
+
+	<section>
+		<div class="mb-4 flex items-end justify-between">
+			<a
+				href={discoverHref}
+				class="text-[0.72rem] font-semibold text-muted-foreground transition hover:text-foreground"
+			>
+				View all
+			</a>
+		</div>
+
+		<div class="grid grid-cols-2 gap-12 sm:grid-cols-3 xl:grid-cols-4">
+			{#each releaseCards as release (release.title)}
+				<a href={discoverHref} class="group min-w-0">
+					<div
+						class="relative aspect-square overflow-hidden rounded-4xl shadow-[0_16px_34px_rgba(15,23,42,0.1)] transition duration-300 group-hover:-translate-y-1 group-hover:shadow-[0_18px_42px_rgba(15,23,42,0.16)]"
+						style="background: {release.tint};"
+					>
+						<img
+							src={release.image}
+							alt=""
+							class="h-full w-full object-cover opacity-82 mix-blend-luminosity transition duration-500 group-hover:scale-105 group-hover:opacity-95"
+						/>
+						<div
+							class="absolute inset-0 bg-gradient-to-t from-black/32 to-transparent opacity-0 transition group-hover:opacity-100"
+						></div>
+					</div>
+					<div class="mt-4 min-w-0">
+						<p class="truncate text-[0.78rem] font-semibold">{release.title}</p>
+						<p class="mt-1 truncate text-[0.68rem] text-muted-foreground">
+							{release.artist}
+						</p>
+					</div>
+				</a>
+			{/each}
+		</div>
+	</section>
+</div>

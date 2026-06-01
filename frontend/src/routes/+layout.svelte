@@ -32,6 +32,7 @@
 	// Pass a getter so context consumers get reactive updates
 	setContext('user', {
 		get current() {
+			console.log(page.data.user);
 			return page.data.user;
 		}
 	});

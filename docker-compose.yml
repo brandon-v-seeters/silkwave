@@ -52,7 +52,7 @@ services:
       - silkwave_go_pkg:/go/pkg
     command: >
       sh -c "go mod download &&
-      go run cmd/migrate/main.go &&
+      go run cmd/seed/main.go &&
       go run cmd/server/main.go"
 
   frontend:

@@ -6,6 +6,10 @@ export const handle: Handle = async ({ event, resolve }) => {
 		return resolve(event);
 	}
 
+	if (event.url.pathname.startsWith('/api/') || event.url.pathname === '/api' || event.url.pathname === '/health') {
+		return resolve(event);
+	}
+
 	// get cookies from browser
 	const session = event.cookies.get('session');
 
@@ -17,7 +21,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 	try {
 		// find the user based on the session
-		const res = await fetch(apiUrl('/user'), {
+		const res = await event.fetch(apiUrl('/user'), {
 			headers: {
 				Cookie: `session=${session}`
 			}

@@ -1,9 +1,23 @@
 <script lang="ts">
-	import Icon from '$lib/components/atoms/Icon.svelte';
+	import { browser } from '$app/environment';
+	import { resolve } from '$app/paths';
 	import { MediaPlayer } from '$lib/components/organisms/media-player';
 	import Button from '$lib/components/ui/button/button.svelte';
+	import { cart } from '$lib/stores/cart';
 	import type { MediaPlayerTrack } from '$lib/components/organisms/media-player';
 	import type { Track } from '$lib/types/generated/models.js';
+	import {
+		ArrowLeft,
+		CalendarDays,
+		Clock3,
+		Disc3,
+		Download,
+		ListMusic,
+		Music2,
+		Share2,
+		ShoppingBag
+	} from '@lucide/svelte';
+	import { toast } from 'svelte-sonner';
 	import type { PageProps } from './$types';
 
 	type TrackWithOptionalSource = Track & {
@@ -14,16 +28,18 @@
 		artworkUrl?: string | null;
 	};
 
-	let { data }: PageProps = $props();
+	let { data, params }: PageProps = $props();
 
 	const release = $derived(data.release);
 	const artist = $derived(release.artist ?? data.artist);
 	const tracks = $derived<TrackWithOptionalSource[]>(
 		(release.tracks ?? []) as TrackWithOptionalSource[]
 	);
+	const sortedTracks = $derived.by(() =>
+		[...tracks].sort((first, second) => (first.order || 0) - (second.order || 0))
+	);
 	const trackTitles = $derived(release.trackList ?? []);
-	const hasTracks = $derived(tracks.length > 0 || trackTitles.length > 0);
-	const artistHref = $derived(artist?.slug ? `/artist/${artist.slug}` : '/discover');
+	const hasTracks = $derived(sortedTracks.length > 0 || trackTitles.length > 0);
 	const coverArt = $derived(
 		release.cover ||
 			release.assets?.coverArt?.original ||
@@ -34,20 +50,41 @@
 	const publishDate = $derived(formatDate(release.publishAt || release.schedule?.publishAt));
 	const price = $derived(formatPrice(release.pricing?.basePrice));
 	const trackCount = $derived(
-		release.trackCount || tracks.length || trackTitles.length || 0
+		release.trackCount || sortedTracks.length || trackTitles.length || 0
 	);
 	const totalDuration = $derived(formatDuration(release.totalDuration));
-	const buyLabel = $derived(
-		release.releaseType?.toLowerCase() === 'album' ? 'Buy Album' : 'Buy Release'
-	);
-	const playableTracks = $derived(buildPlayableTracks(tracks));
+	const releaseType = $derived(formatReleaseType(release.releaseType));
+	const playableTracks = $derived(buildPlayableTracks(sortedTracks));
 	const hasPlayableTracks = $derived(playableTracks.length > 0);
+	const genres = $derived(
+		release.metadata?.genres?.length ? release.metadata.genres : release.genres ?? []
+	);
+	const cartItemId = $derived(`release:${release.id || release._key || release.slug}`);
+	const isInCart = $derived($cart.some((item) => item.id === cartItemId));
+	const buyLabel = $derived(
+		isInCart
+			? 'In cart'
+			: price === 'Free'
+				? 'Add free release'
+				: price
+					? `Add to cart - ${price}`
+					: 'Add to cart'
+	);
+	const availabilityLabel = $derived(
+		release.streamingEnabled && release.downloadEnabled
+			? 'Streaming and downloads'
+			: release.streamingEnabled
+				? 'Streaming only'
+				: release.downloadEnabled
+					? 'Downloads included'
+					: 'Limited availability'
+	);
 	const primaryMeta = $derived(
 		[
-			formatReleaseType(release.releaseType),
+			releaseType,
 			publishDate,
 			trackCount ? `${trackCount} ${trackCount === 1 ? 'track' : 'tracks'}` : null,
-			totalDuration
+			totalDuration ? formatTotalDuration(totalDuration) : null
 		].filter(Boolean)
 	);
 
@@ -112,7 +149,14 @@
 	}
 
 	function resolveTrackSource(track: TrackWithOptionalSource) {
-		return track.source || track.audioUrl || track.previewUrl || track.streamUrl || null;
+		return (
+			track.source ||
+			track.audioUrl ||
+			track.previewUrl ||
+			track.streamUrl ||
+			track.files?.previewPath ||
+			null
+		);
 	}
 
 	function buildPlayableTracks(items: TrackWithOptionalSource[]): MediaPlayerTrack[] {
@@ -134,242 +178,291 @@
 
 		return playerTracks;
 	}
+
+	function addReleaseToCart() {
+		if (isInCart) return;
+
+		cart.add({
+			id: cartItemId,
+			type: release.releaseType?.toLowerCase() === 'single' ? 'track' : 'album',
+			title: release.title,
+			artist: artist?.name ?? 'Unknown artist',
+			price: release.pricing?.basePrice ?? 0,
+			coverUrl: coverArt ?? undefined
+		});
+
+		toast.success('Added to cart');
+	}
+
+	async function shareRelease() {
+		if (!browser) return;
+
+		const url = window.location.href;
+
+		try {
+			if (navigator.share) {
+				await navigator.share({
+					title: release.title,
+					text: artist?.name ? `${release.title} by ${artist.name}` : release.title,
+					url
+				});
+				return;
+			}
+
+			await navigator.clipboard.writeText(url);
+			toast.success('Link copied');
+		} catch (error) {
+			if (error instanceof DOMException && error.name === 'AbortError') return;
+
+			toast.error('Could not share this release');
+		}
+	}
 </script>
 
 <svelte:head>
-	<title>{release.title} by {artist?.name ?? 'Silk Wave'} - Silk Wave</title>
+	<title>{release.title} by {artist?.name ?? 'Silkwave'} - Silkwave</title>
 	<meta
 		name="description"
-		content={release.description || `${release.title} on Silk Wave`}
+		content={release.description || `${release.title} on Silkwave`}
 	/>
 </svelte:head>
 
-<article class="relative isolate -mx-4 -mt-6 min-h-dvh overflow-hidden bg-background text-foreground md:-mx-10">
-	<div class="absolute inset-0 -z-20 bg-background"></div>
-	{#if coverArt}
-		<img
-			src={coverArt}
-			alt=""
-			class="absolute inset-0 -z-20 h-full w-full scale-110 object-cover opacity-70 blur-3xl saturate-125"
-			aria-hidden="true"
-		/>
-	{/if}
-	<div class="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_20%_20%,color-mix(in_oklch,var(--primary)_28%,transparent),transparent_34%),linear-gradient(120deg,color-mix(in_oklch,var(--background)_72%,black),color-mix(in_oklch,var(--background)_88%,black)_42%,color-mix(in_oklch,var(--foreground)_9%,var(--background)))] dark:bg-[radial-gradient(circle_at_24%_18%,color-mix(in_oklch,var(--primary)_23%,transparent),transparent_34%),linear-gradient(125deg,rgba(0,0,0,0.76),rgba(0,0,0,0.9)_46%,color-mix(in_oklch,var(--background)_82%,black))]"></div>
-
-	<div class="mx-auto flex min-h-dvh w-full max-w-7xl flex-col px-4 pb-32 pt-6 sm:px-6 md:px-10 lg:px-12">
+<article class="pb-32">
+	<div class="mb-10">
 		<a
-			href={artistHref}
-			class="mb-8 inline-flex w-fit items-center gap-2 rounded-md border border-foreground/10 bg-background/55 px-3 py-2 text-sm font-medium text-muted-foreground backdrop-blur-xl transition hover:border-primary/35 hover:text-foreground dark:border-white/10 dark:bg-black/20"
+			href={resolve('/artist/[artistSlug]', {
+				artistSlug: artist?.slug ?? params.artistSlug
+			})}
+			class="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition hover:text-foreground"
 		>
-			<Icon icon="chevron-left" variant="line" class="h-4 w-4 fill-current" />
-			<span>{artist?.name ?? 'Back to Artist'}</span>
+			<ArrowLeft class="h-4 w-4" aria-hidden="true" />
+			<span>{artist?.name ?? 'Back to artist'}</span>
 		</a>
+	</div>
 
-		<section class="grid flex-1 gap-8 lg:grid-cols-[minmax(260px,440px)_minmax(0,1fr)] lg:items-center lg:gap-14">
-			<div class="mx-auto w-full max-w-[440px] lg:mx-0">
-				<div class="relative aspect-square overflow-hidden rounded-lg border border-foreground/10 bg-card/55 shadow-2xl shadow-black/35 backdrop-blur-xl dark:border-white/10">
-					{#if coverArt}
-						<img
-							src={coverArt}
-							alt="{release.title} cover art"
-							class="h-full w-full object-cover"
-						/>
-					{:else}
-						<div class="flex h-full w-full items-center justify-center bg-muted/70 text-muted-foreground">
-							<Icon icon="music-note-2" class="h-20 w-20 fill-current" />
-						</div>
-					{/if}
-				</div>
+	<section
+		class="grid gap-10 lg:grid-cols-[minmax(240px,360px)_minmax(0,1fr)] lg:items-end lg:gap-16"
+	>
+		<aside class="lg:sticky lg:top-24 lg:self-start">
+			<div class="relative isolate aspect-square overflow-hidden rounded-lg bg-card">
+				{#if coverArt}
+					<img
+						src={coverArt}
+						alt=""
+						class="absolute -inset-8 -z-10 h-[calc(100%+4rem)] w-[calc(100%+4rem)] object-cover opacity-[0.18] blur-2xl saturate-125"
+						aria-hidden="true"
+					/>
+				{/if}
+				{#if coverArt}
+					<img src={coverArt} alt="{release.title} cover art" class="h-full w-full object-cover" />
+				{:else}
+					<div class="flex h-full w-full items-center justify-center bg-muted text-muted-foreground">
+						<Music2 class="h-16 w-16" aria-hidden="true" />
+					</div>
+				{/if}
 			</div>
 
-			<div class="min-w-0 text-foreground">
-				<div class="flex flex-wrap items-center gap-2 text-sm font-medium text-muted-foreground">
-					{#each primaryMeta as item (`meta-${item}`)}
-						<span class="rounded-full border border-foreground/10 bg-background/50 px-3 py-1 backdrop-blur-xl dark:border-white/10 dark:bg-white/[0.06]">
-							{item}
+			<dl class="mt-6 space-y-3 text-sm">
+				<div class="flex items-start justify-between gap-4">
+					<dt class="flex items-center gap-2 text-muted-foreground">
+						<Disc3 class="h-4 w-4" aria-hidden="true" />
+						Type
+					</dt>
+					<dd class="font-medium">{releaseType}</dd>
+				</div>
+				{#if publishDate}
+					<div class="flex items-start justify-between gap-4">
+						<dt class="flex items-center gap-2 text-muted-foreground">
+							<CalendarDays class="h-4 w-4" aria-hidden="true" />
+							Released
+						</dt>
+						<dd class="text-right font-medium">{publishDate}</dd>
+					</div>
+				{/if}
+				{#if totalDuration}
+					<div class="flex items-start justify-between gap-4">
+						<dt class="flex items-center gap-2 text-muted-foreground">
+							<Clock3 class="h-4 w-4" aria-hidden="true" />
+							Length
+						</dt>
+						<dd class="font-medium">{formatTotalDuration(totalDuration)}</dd>
+					</div>
+				{/if}
+				<div class="flex items-start justify-between gap-4">
+					<dt class="flex items-center gap-2 text-muted-foreground">
+						<Download class="h-4 w-4" aria-hidden="true" />
+						Access
+					</dt>
+					<dd class="text-right font-medium">{availabilityLabel}</dd>
+				</div>
+			</dl>
+		</aside>
+
+		<div class="min-w-0">
+			<div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+				{#each primaryMeta as item, index (`meta-${item}`)}
+					<span>
+						{item}
+					</span>
+					{#if index < primaryMeta.length - 1}
+						<span aria-hidden="true">/</span>
+					{/if}
+				{/each}
+			</div>
+
+			<h1 class="mt-5 max-w-4xl text-balance font-serif text-6xl font-light leading-[0.92] tracking-tight sm:text-7xl lg:text-8xl">
+				{release.title}
+			</h1>
+
+			{#if artist}
+				<a
+					href={resolve('/artist/[artistSlug]', {
+						artistSlug: artist?.slug ?? params.artistSlug
+					})}
+					class="mt-5 inline-flex max-w-full items-center gap-3 text-base font-medium text-muted-foreground transition hover:text-primary"
+				>
+					<span
+						class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-card text-sm font-semibold text-card-foreground"
+						aria-hidden="true"
+					>
+						{artist.name?.slice(0, 1).toUpperCase() ?? 'A'}
+					</span>
+					<span class="min-w-0 truncate">{artist.name}</span>
+				</a>
+			{/if}
+
+			<div class="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+				<Button
+					variant="primary"
+					class="justify-center rounded-md px-6 sm:w-auto"
+					disabled={isInCart}
+					onclick={addReleaseToCart}
+				>
+					<ShoppingBag class="h-4 w-4" aria-hidden="true" />
+					{buyLabel}
+				</Button>
+
+				{#if hasTracks}
+					<Button href="#tracks" variant="secondary" class="justify-center rounded-md px-5">
+						<ListMusic class="h-4 w-4" aria-hidden="true" />
+						View tracks
+					</Button>
+				{/if}
+
+				<Button variant="ghost" class="justify-center rounded-md px-4" onclick={shareRelease}>
+					<Share2 class="h-4 w-4" aria-hidden="true" />
+					Share
+				</Button>
+			</div>
+
+			{#if release.description}
+				<p class="mt-9 max-w-2xl whitespace-pre-line text-pretty text-lg leading-8 text-muted-foreground">
+					{release.description}
+				</p>
+			{/if}
+
+			{#if genres.length}
+				<div class="mt-6 flex flex-wrap gap-2">
+					{#each genres as genre (`genre-${genre}`)}
+						<span class="rounded-md bg-muted px-3 py-1 text-sm text-muted-foreground">
+							{genre}
 						</span>
 					{/each}
 				</div>
+			{/if}
+		</div>
+	</section>
 
-				<h1 class="mt-5 max-w-4xl text-balance break-words text-5xl font-semibold leading-[0.95] tracking-tight text-foreground sm:text-6xl lg:text-7xl">
-					{release.title}
-				</h1>
-
-				{#if artist}
-					<a
-						href={artistHref}
-						class="mt-5 inline-flex max-w-full items-center gap-3 text-lg font-medium text-muted-foreground transition hover:text-primary"
-					>
-						<span class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-md border border-foreground/10 bg-background/60 text-sm text-foreground backdrop-blur-xl dark:border-white/10">
-							{artist.name?.slice(0, 1) ?? 'A'}
-						</span>
-						<span class="min-w-0 truncate">{artist.name}</span>
-					</a>
-				{/if}
-
-				<div class="mt-8 grid gap-4 rounded-lg border border-foreground/10 bg-background/60 p-4 backdrop-blur-xl dark:border-white/10 dark:bg-black/25 sm:grid-cols-[1fr_auto] sm:items-center">
-					<div>
-						<p class="text-sm text-muted-foreground">Digital release</p>
-						<p class="mt-1 text-2xl font-semibold">{price ?? 'Price not set'}</p>
-					</div>
-
-					<div class="flex flex-col gap-2 sm:flex-row">
-						<Button
-							variant="primary"
-							class="h-12 rounded-md px-5"
-							disabled
-							aria-label={`${buyLabel} is not available yet`}
-							title="Purchase flow is not connected yet"
-						>
-							<Icon icon="shopping-cart" class="h-5 w-5 fill-current" />
-							{buyLabel}
-						</Button>
-
-						<Button
-							variant="secondary"
-							class="h-12 rounded-md px-5"
-							disabled={!hasPlayableTracks}
-							aria-label={hasPlayableTracks ? 'Use the player controls below' : 'Playback is not available yet'}
-							title={hasPlayableTracks ? 'Use the player controls below' : 'No playable track source is available yet'}
-						>
-							<Icon icon="play" variant="filled" class="h-4 w-4 fill-current" />
-							Play
-						</Button>
-					</div>
-				</div>
-
-				<div class="mt-4 flex flex-wrap gap-2">
-					<Button variant="secondary" class="h-10 rounded-md px-3" disabled>
-						<Icon icon="plus" variant="line" class="h-4 w-4 fill-current" />
-						Add
-					</Button>
-					<Button variant="secondary" class="h-10 rounded-md px-3" disabled>
-						Share
-					</Button>
-				</div>
-
-				{#if release.description}
-					<p class="mt-8 max-w-2xl whitespace-pre-line text-base leading-7 text-muted-foreground">
-						{release.description}
+	<section
+		id="tracks"
+		class="mt-18 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(220px,300px)] lg:gap-14"
+	>
+		<div>
+			<div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+				<div>
+					<p class="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+						<ListMusic class="h-4 w-4" aria-hidden="true" />
+						Tracks
 					</p>
-				{/if}
-
-				{#if release.metadata?.genres?.length}
-					<div class="mt-6 flex flex-wrap gap-2">
-						{#each release.metadata.genres as genre}
-							<span class="rounded-full border border-foreground/10 bg-background/45 px-3 py-1 text-sm text-muted-foreground backdrop-blur-xl dark:border-white/10">
-								{genre}
-							</span>
-						{/each}
-					</div>
-				{/if}
-			</div>
-		</section>
-
-		<section id="tracks" class="mt-14 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(260px,340px)]">
-			<div class="rounded-lg border border-foreground/10 bg-background/72 p-4 backdrop-blur-xl dark:border-white/10 dark:bg-black/30 sm:p-6">
-				<div class="flex flex-col gap-2 border-b border-border/70 pb-4 sm:flex-row sm:items-end sm:justify-between">
-					<div>
-						<p class="text-sm font-medium uppercase tracking-[0.16em] text-muted-foreground">
-							Track list
-						</p>
-						<h2 class="mt-1 text-2xl font-semibold">Listen through the Release</h2>
-					</div>
-					{#if totalDuration}
-						<p class="text-sm text-muted-foreground">
-							{formatTotalDuration(totalDuration)}
-						</p>
-					{/if}
+					<h2 class="mt-2 text-3xl font-semibold tracking-tight">Side A to closing note</h2>
 				</div>
-
-				{#if hasTracks}
-					<ol class="divide-y divide-border/70">
-						{#if tracks.length}
-							{#each tracks as track, index (track.id || track._key || `${index}-${track.title}`)}
-								{@const source = resolveTrackSource(track)}
-								{@const duration = formatDuration(track.duration, track.durationDisplay)}
-								<li class="grid grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-3 py-4 sm:grid-cols-[2rem_2.75rem_minmax(0,1fr)_auto_auto]">
-									<span class="text-sm tabular-nums text-muted-foreground">
-										{track.order || index + 1}
-									</span>
-									<button
-										type="button"
-										class="hidden h-10 w-10 items-center justify-center rounded-md border border-border bg-background/55 text-foreground transition hover:border-primary/50 disabled:cursor-not-allowed disabled:opacity-40 sm:inline-flex"
-										disabled={!source}
-										aria-label={source ? `Play ${track.title}` : `Playback unavailable for ${track.title}`}
-										title={source ? `Play ${track.title}` : 'No playable source available'}
-									>
-										<Icon icon="play" variant="filled" class="h-4 w-4 fill-current" />
-									</button>
-									<div class="min-w-0">
-										<p class="truncate font-medium">{track.title}</p>
-										{#if track.isExplicit}
-											<p class="mt-1 text-xs text-muted-foreground">Explicit</p>
-										{/if}
-									</div>
-									{#if duration}
-										<span class="text-sm tabular-nums text-muted-foreground">{duration}</span>
-									{/if}
-									<button
-										type="button"
-										class="hidden rounded-md px-2 py-1 text-sm text-muted-foreground transition hover:bg-foreground/5 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 sm:inline-flex"
-										disabled
-										aria-label={`Add ${track.title}`}
-										title="Track purchase flow is not connected yet"
-									>
-										Add
-									</button>
-								</li>
-							{/each}
-						{:else}
-							{#each trackTitles as title, index (`${index}-${title}`)}
-								<li class="grid grid-cols-[2rem_minmax(0,1fr)] items-center gap-3 py-4">
-									<span class="text-sm tabular-nums text-muted-foreground">{index + 1}</span>
-									<span class="min-w-0 truncate font-medium">{title}</span>
-								</li>
-							{/each}
-						{/if}
-					</ol>
-				{:else}
-					<div class="py-10 text-muted-foreground">
-						No tracks are listed for this Release yet.
-					</div>
+				{#if totalDuration}
+					<p class="text-sm text-muted-foreground">{formatTotalDuration(totalDuration)}</p>
 				{/if}
 			</div>
 
-			<aside class="h-fit rounded-lg border border-foreground/10 bg-background/64 p-5 backdrop-blur-xl dark:border-white/10 dark:bg-black/25">
-				<p class="text-sm font-medium uppercase tracking-[0.16em] text-muted-foreground">
-					Release details
-				</p>
-				<dl class="mt-4 space-y-4 text-sm">
-					<div class="flex justify-between gap-4">
-						<dt class="text-muted-foreground">Artist</dt>
-						<dd class="min-w-0 truncate font-medium">{artist?.name ?? 'Unknown Artist'}</dd>
-					</div>
-					<div class="flex justify-between gap-4">
-						<dt class="text-muted-foreground">Type</dt>
-						<dd class="font-medium">{formatReleaseType(release.releaseType)}</dd>
-					</div>
-					<div class="flex justify-between gap-4">
-						<dt class="text-muted-foreground">Price</dt>
-						<dd class="font-medium">{price ?? 'Not set'}</dd>
-					</div>
-					{#if release.downloadEnabled !== undefined}
-						<div class="flex justify-between gap-4">
-							<dt class="text-muted-foreground">Downloads</dt>
-							<dd class="font-medium">{release.downloadEnabled ? 'Enabled' : 'Disabled'}</dd>
-						</div>
+			{#if hasTracks}
+				<ol class="mt-6 space-y-1">
+					{#if sortedTracks.length}
+						{#each sortedTracks as track, index (track.id || track._key || `${index}-${track.title}`)}
+							{@const source = resolveTrackSource(track)}
+							{@const duration = formatDuration(track.duration, track.durationDisplay)}
+							<li class="group grid grid-cols-[2.25rem_minmax(0,1fr)_auto] items-center gap-3 rounded-md px-2 py-3 transition hover:bg-muted/50 sm:grid-cols-[2.25rem_minmax(0,1fr)_auto_auto] sm:px-3">
+								<span class="text-sm tabular-nums text-muted-foreground">
+									{track.order || index + 1}
+								</span>
+								<div class="min-w-0">
+									<p class="truncate font-medium">{track.title}</p>
+									{#if track.isExplicit}
+										<p class="mt-1 text-xs text-muted-foreground">Explicit</p>
+									{/if}
+								</div>
+								{#if duration}
+									<span class="text-sm tabular-nums text-muted-foreground">{duration}</span>
+								{/if}
+								<span class="hidden text-sm text-muted-foreground sm:inline">
+									{source ? 'Preview in player' : 'No preview'}
+								</span>
+							</li>
+						{/each}
+					{:else}
+						{#each trackTitles as title, index (`${index}-${title}`)}
+							<li class="grid grid-cols-[2.25rem_minmax(0,1fr)] items-center gap-3 rounded-md px-2 py-3 transition hover:bg-muted/50 sm:px-3">
+								<span class="text-sm tabular-nums text-muted-foreground">{index + 1}</span>
+								<span class="min-w-0 truncate font-medium">{title}</span>
+							</li>
+						{/each}
 					{/if}
-					{#if release.streamingEnabled !== undefined}
-						<div class="flex justify-between gap-4">
-							<dt class="text-muted-foreground">Streaming</dt>
-							<dd class="font-medium">{release.streamingEnabled ? 'Enabled' : 'Disabled'}</dd>
-						</div>
-					{/if}
-				</dl>
-			</aside>
-		</section>
-	</div>
+				</ol>
+			{:else}
+				<div class="mt-6 rounded-lg bg-card px-5 py-10 text-muted-foreground">
+					The track list is still being finished.
+				</div>
+			{/if}
+		</div>
+
+		<aside class="text-sm">
+			<h2 class="text-base font-semibold tracking-tight">Release notes</h2>
+			<dl class="mt-5 space-y-5">
+				<div>
+					<dt class="text-muted-foreground">Artist</dt>
+					<dd class="mt-1 truncate font-medium">{artist?.name ?? 'Unknown artist'}</dd>
+				</div>
+				<div>
+					<dt class="text-muted-foreground">Availability</dt>
+					<dd class="mt-1 font-medium">{availabilityLabel}</dd>
+				</div>
+				{#if release.metadata?.label}
+					<div>
+						<dt class="text-muted-foreground">Label</dt>
+						<dd class="mt-1 truncate font-medium">{release.metadata.label}</dd>
+					</div>
+				{/if}
+				{#if release.metadata?.catalogNumber}
+					<div>
+						<dt class="text-muted-foreground">Catalog</dt>
+						<dd class="mt-1 truncate font-medium">{release.metadata.catalogNumber}</dd>
+					</div>
+				{/if}
+				{#if release.isExplicit}
+					<div>
+						<dt class="text-muted-foreground">Content</dt>
+						<dd class="mt-1 font-medium">Explicit</dd>
+					</div>
+				{/if}
+			</dl>
+		</aside>
+	</section>
 
 	{#if hasPlayableTracks}
 		<MediaPlayer

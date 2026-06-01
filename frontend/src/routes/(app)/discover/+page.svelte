@@ -34,8 +34,7 @@
 				? `/api/releases?q=${encodeURIComponent(query)}`
 				: '/api/releases?limit=24';
 			const response = await fetch(url);
-			const data = (await response.json()) as ApiEnvelope<ReleasesPayload> &
-				ReleasesPayload;
+			const data = (await response.json()) as ApiEnvelope<ReleasesPayload> & ReleasesPayload;
 
 			if (data.error) {
 				error = typeof data.error === 'string' ? data.error : 'Failed to load releases';
@@ -113,7 +112,7 @@
 	<title>Discover - Silk Wave</title>
 </svelte:head>
 
-<div class="mx-auto max-w-7xl">
+<div class="mx-auto">
 	<!-- Header -->
 	<div class="mb-8">
 		<h1 class="font-serif text-4xl font-light md:text-6xl">Latest Releases</h1>
@@ -151,7 +150,7 @@
 		</div>
 	{:else if releases.length === 0}
 		<!-- Empty State -->
-		<div class="bg-muted rounded-lg p-12 text-center">
+		<div class="bg-background rounded-lg p-12 text-center">
 			<Icon icon="music-note-2" class="mx-auto h-12 w-12 text-foreground-muted" />
 			<p class="mt-4 text-lg text-foreground-muted">
 				{searchQuery ? 'No releases found matching your search' : 'No releases found'}
