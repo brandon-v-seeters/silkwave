@@ -3,28 +3,17 @@
 	import { resolve } from '$app/paths';
 	import * as Dialog from '$lib/components/ui/dialog/index';
 	import type { IconKey } from '$lib/types/Icon';
-	import type { Artist, Release, ReleaseWithArtist } from '$lib/types/generated/models';
 	import { cn } from '$lib/utils/utils';
 	import Icon from '$lib/components/ui/icon/Icon.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
+	import {
+		fetchCatalogReleases,
+		releaseRoute,
+		releaseRouteParams,
+		type CatalogRelease
+	} from '$lib/features/catalog';
 
 	type SearchCategory = 'all' | 'genres' | 'artists' | 'releases' | 'albums';
-
-	type ReleaseResult = Release & {
-		artist?: Pick<Artist, 'name' | 'slug'>;
-		coverArt?: string | null;
-		type?: string;
-	};
-
-	type ApiEnvelope<T> = {
-		data?: T;
-		error?: { message?: string } | string;
-	};
-
-	type SearchReleaseRow = ReleaseResult | ReleaseWithArtist;
-	type SearchReleasesPayload = {
-		releases?: SearchReleaseRow[];
-	};
 
 	let {
 		open = $bindable(false),
@@ -43,7 +32,7 @@
 	];
 
 	let selectedCategory = $state<SearchCategory>('all');
-	let releases = $state.raw<ReleaseResult[]>([]);
+	let releases = $state.raw<CatalogRelease[]>([]);
 	let isLoading = $state(false);
 	let error = $state<string | null>(null);
 	let imageErrors = $state<string[]>([]);
@@ -54,7 +43,7 @@
 
 	function handleSearch() {
 		if (trimmedQuery) {
-			goto(resolve('/discover') + `?q=${encodeURIComponent(trimmedQuery)}`);
+			goto(resolve(`/discover?q=${encodeURIComponent(trimmedQuery)}` as '/discover'));
 			open = false;
 		}
 	}
@@ -78,71 +67,20 @@
 		}
 	}
 
-	function coverArtFor(release: ReleaseResult) {
-		return (
-			release.coverArt ||
-			release.cover ||
-			release.assets?.coverArt?.medium ||
-			release.assets?.coverArt?.original ||
-			release.assets?.coverArt?.thumbnail ||
-			null
-		);
-	}
-
-	function releaseKind(release: ReleaseResult) {
-		return release.type ?? release.releaseType ?? 'Release';
-	}
-
-	function resultKey(release: ReleaseResult) {
-		return release.id || release._key || `${release.artist?.slug ?? 'artist'}-${release.slug}`;
-	}
-
-	function parseError(errorValue: ApiEnvelope<SearchReleasesPayload>['error']) {
-		if (!errorValue) return 'Failed to search releases';
-		if (typeof errorValue === 'string') return errorValue;
-
-		return errorValue.message ?? 'Failed to search releases';
-	}
-
-	function isGeneratedReleaseWithArtist(row: SearchReleaseRow): row is ReleaseWithArtist {
-		return 'Release' in row;
-	}
-
-	function normalizeReleaseResult(row: SearchReleaseRow): ReleaseResult {
-		if (isGeneratedReleaseWithArtist(row)) {
-			return {
-				...row.Release,
-				artist: row.artist
-			};
-		}
-
-		return row;
-	}
-
 	async function loadReleaseResults(query: string, signal: AbortSignal) {
 		isLoading = true;
 		error = null;
 
 		try {
-			const response = await fetch(`/api/releases?q=${encodeURIComponent(query)}&limit=8`, {
+			releases = await fetchCatalogReleases(fetch, {
+				limit: 8,
+				query,
 				signal
 			});
-			const payload = (await response.json()) as ApiEnvelope<SearchReleasesPayload> &
-				SearchReleasesPayload;
-
-			if (!response.ok || payload.error) {
-				error = parseError(payload.error);
-				releases = [];
-				return;
-			}
-
-			releases = (payload.data?.releases ?? payload.releases ?? []).map(
-				normalizeReleaseResult
-			);
 		} catch (e) {
 			if (e instanceof DOMException && e.name === 'AbortError') return;
 
-			error = 'Failed to search releases';
+			error = e instanceof Error ? e.message : 'Failed to search releases';
 			releases = [];
 		} finally {
 			if (!signal.aborted) {
@@ -280,13 +218,11 @@
 							</div>
 						{:else}
 							<div class="space-y-2">
-								{#each releases as release (resultKey(release))}
-									{@const coverArt = coverArtFor(release)}
+								{#each releases as release (release.key)}
+									{@const coverArt = release.coverArtUrl}
 									{#if release.slug}
 										<a
-											href={resolve('/(app)/release/[releaseSlug]', {
-												releaseSlug: release.slug
-											})}
+											href={resolve(releaseRoute, releaseRouteParams(release))}
 											onclick={() => (open = false)}
 											class="group flex w-full items-center gap-3 rounded-lg border border-border bg-background p-3 text-left transition-colors hover:bg-accent"
 										>
@@ -321,9 +257,7 @@
 												<div
 													class="mt-1 truncate text-base text-foreground-muted"
 												>
-													{release.artist?.name ?? 'Unknown Artist'} · {releaseKind(
-														release
-													)}
+													{release.artist?.name ?? 'Unknown Artist'} · {release.kind}
 												</div>
 											</div>
 										</a>

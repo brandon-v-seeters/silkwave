@@ -2,26 +2,16 @@
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	import type { Artist, Release } from '$lib/types/generated/models';
+	import {
+		fetchCatalogReleases,
+		releaseRoute,
+		releaseRouteParams,
+		type CatalogRelease
+	} from '$lib/features/catalog';
 	import Icon from '$lib/components/ui/icon/Icon.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
 
-	type DiscoverRelease = Release & {
-		artist?: Pick<Artist, 'name' | 'slug'>;
-		coverArt?: string | null;
-		type?: string;
-	};
-
-	type ReleasesPayload = {
-		releases?: DiscoverRelease[];
-	};
-
-	type ApiEnvelope<T> = {
-		data?: T;
-		error?: string | { message?: string };
-	};
-
-	let releases = $state<DiscoverRelease[]>([]);
+	let releases = $state.raw<CatalogRelease[]>([]);
 	let isLoading = $state(true);
 	let error = $state<string | null>(null);
 	let searchQuery = $state(page.url.searchParams.get('q') || '');
@@ -31,19 +21,12 @@
 		error = null;
 
 		try {
-			const url = query
-				? `/api/releases?q=${encodeURIComponent(query)}`
-				: '/api/releases?limit=24';
-			const response = await fetch(url);
-			const data = (await response.json()) as ApiEnvelope<ReleasesPayload> & ReleasesPayload;
-
-			if (data.error) {
-				error = typeof data.error === 'string' ? data.error : 'Failed to load releases';
-			} else {
-				releases = data.data?.releases ?? data.releases ?? [];
-			}
+			releases = await fetchCatalogReleases(fetch, {
+				limit: 24,
+				query
+			});
 		} catch (e) {
-			error = 'Failed to load releases';
+			error = e instanceof Error ? e.message : 'Failed to load releases';
 			console.error(e);
 		} finally {
 			isLoading = false;
@@ -74,33 +57,6 @@
 		}
 	}
 
-	function formatDate(value: string | number | undefined) {
-		if (!value) return 'Unknown';
-
-		const date = new Date(value);
-		if (Number.isNaN(date.getTime())) return 'Unknown';
-
-		return date.toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: 'long',
-			day: 'numeric'
-		});
-	}
-
-	function coverArtFor(release: DiscoverRelease) {
-		return (
-			release.coverArt ||
-			release.cover ||
-			release.assets?.coverArt?.medium ||
-			release.assets?.coverArt?.original ||
-			release.assets?.coverArt?.thumbnail ||
-			null
-		);
-	}
-
-	function releaseKind(release: DiscoverRelease) {
-		return release.type ?? release.releaseType;
-	}
 </script>
 
 <svelte:head>
@@ -154,8 +110,8 @@
 	{:else}
 		<!-- Releases Grid -->
 		<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-			{#each releases as release (release.id || release._key || release.slug)}
-				{@const coverArt = coverArtFor(release)}
+			{#each releases as release (release.key)}
+				{@const coverArt = release.coverArtUrl}
 				{#snippet releaseContent()}
 					<!-- Cover Art Placeholder -->
 					<div class="bg-muted mb-4 aspect-square w-full overflow-hidden rounded-md">
@@ -186,19 +142,17 @@
 						{/if}
 						<div class="mt-2 flex items-center gap-2 text-xs text-foreground-muted">
 							<span class="bg-muted rounded-full px-2 py-1">
-								{releaseKind(release)}
+								{release.kind}
 							</span>
 							<span>•</span>
-							<span>{formatDate(release.publishAt)}</span>
+							<span>{release.publishedAtLabel}</span>
 						</div>
 					</div>
 				{/snippet}
 
 				{#if release.slug}
 					<a
-						href={resolve('/(app)/release/[releaseSlug]', {
-							releaseSlug: release.slug
-						})}
+						href={resolve(releaseRoute, releaseRouteParams(release))}
 						class="group rounded-lg border border-border bg-card p-4 transition-all hover:border-primary hover:shadow-lg"
 					>
 						{@render releaseContent()}

@@ -1,28 +1,21 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import type { Artist, Release } from '$lib/types/generated/models';
+	import {
+		artistRoute,
+		artistRouteParams,
+		releaseRoute,
+		releaseRouteParams,
+		type CatalogRelease
+	} from '../releases';
 
-	type CardRelease = Release & {
-		artist?: Pick<Artist, 'name' | 'slug'>;
-		coverArt?: string | null;
-	};
-
-	let { release }: { release: CardRelease } = $props();
-
-	const coverArt = $derived(
-		release.coverArt ||
-			release.cover ||
-			release.assets?.coverArt?.medium ||
-			release.assets?.coverArt?.original ||
-			release.assets?.coverArt?.thumbnail ||
-			null
-	);
+	let { release }: { release: CatalogRelease } = $props();
+	const coverArt = $derived(release.coverArtUrl);
 </script>
 
 <div class="flex flex-col gap-2">
 	{#if release.slug}
 		<a
-			href={resolve('/(app)/release/[releaseSlug]', { releaseSlug: release.slug })}
+			href={resolve(releaseRoute, releaseRouteParams(release))}
 			class="group/image flex aspect-square cursor-pointer flex-col gap-2 overflow-hidden rounded-xl"
 		>
 			{#if coverArt}
@@ -56,7 +49,7 @@
 		<h5 class="cursor-pointer truncate text-lg font-medium">{release.title}</h5>
 		{#if release.artist?.slug}
 			<a
-				href={resolve('/(app)/artist/[artistSlug]', { artistSlug: release.artist.slug })}
+				href={resolve(artistRoute, artistRouteParams(release.artist))}
 				class="group/artist cursor-pointer truncate text-sm text-foreground-muted transition-colors duration-300 hover:text-primary"
 			>
 				{release.artist?.name}
