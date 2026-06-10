@@ -9,7 +9,7 @@
 <div
 	class="fixed inset-x-0 bottom-0 z-50 flex items-center justify-center gap-2 bg-background/80 py-4 backdrop-blur-sm md:hidden"
 >
-	{#each wizard.steps as step, i}
+	{#each wizard.steps as step, i (step.id)}
 		{@const state = wizard.getStepState(i)}
 		<button
 			class="flex h-2 w-2 items-center justify-center rounded-full transition-all
@@ -28,7 +28,7 @@
 <!-- Desktop step indicator - sidebar -->
 <div class="absolute left-1/2 top-36 hidden w-full max-w-2xl -translate-x-1/2 lg:block">
 	<div class="absolute right-[calc(100%+2rem)] flex flex-col gap-1">
-		{#each wizard.steps as step, i}
+		{#each wizard.steps as step, i (step.id)}
 			{@const state = wizard.getStepState(i)}
 			<Button
 				variant="ghost"

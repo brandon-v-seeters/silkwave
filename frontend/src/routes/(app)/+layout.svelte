@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import Icon from '$lib/components/atoms/Icon.svelte';
-	import DarkModeToggle from '$lib/components/atoms/DarkModeToggle.svelte';
-	import NavbarCart from '$lib/components/atoms/NavbarCart.svelte';
-	import Breadcrumbs from '$lib/components/molecules/Breadcrumbs.svelte';
-	import SearchModal from '$lib/components/organisms/SearchModal.svelte';
-	import { cartCount } from '$lib/stores/cart';
-	import { searchModalOpen } from '$lib/stores/ui';
+	import Icon from '$lib/components/ui/icon/Icon.svelte';
+	import DarkModeToggle from '$lib/components/ui/dark-mode-toggle/DarkModeToggle.svelte';
+	import { NavbarCart } from '$lib/features/cart';
+	import Breadcrumbs from './breadcrumbs.svelte';
+	import { SearchModal } from '$lib/features/catalog';
+	import { cartCount } from '$lib/features/cart';
+	import { searchModalOpen } from '$lib/features/catalog';
 	import AppSidebar from './app-sidebar.svelte';
 
 	let { children } = $props();

@@ -1,7 +1,6 @@
 <script lang="ts">
-	import Icon from '$lib/components/atoms/Icon.svelte';
-	import AccountSettings from '$lib/components/molecules/AccountSettings.svelte';
-	import DeleteAccount from '$lib/components/molecules/DeleteAccount.svelte';
+	import Icon from '$lib/components/ui/icon/Icon.svelte';
+	import { AccountSettings, DeleteAccount } from '$lib/features/account';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Tabs from '$lib/components/ui/tabs/index.js';
 </script>

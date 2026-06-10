@@ -4,7 +4,7 @@
 	import TrackList from '../inputs/TrackList.svelte';
 	import { getWizardContext } from './wizard.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
-	import Icon from '$lib/components/atoms/Icon.svelte';
+	import Icon from '$lib/components/ui/icon/Icon.svelte';
 
 	const wizard = getWizardContext();
 </script>

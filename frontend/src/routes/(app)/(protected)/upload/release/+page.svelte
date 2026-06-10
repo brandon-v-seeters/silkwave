@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { resolve } from '$app/paths';
-	import Icon from '$lib/components/atoms/Icon.svelte';
+	import Icon from '$lib/components/ui/icon/Icon.svelte';
 	import {
 		createWizardContext,
 		ReleaseCoverArt,

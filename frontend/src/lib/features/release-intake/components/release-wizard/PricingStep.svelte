@@ -3,7 +3,7 @@
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { getWizardContext } from './wizard.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
-	import Icon from '$lib/components/atoms/Icon.svelte';
+	import Icon from '$lib/components/ui/icon/Icon.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
 	import {
 		detectCurrency,
@@ -125,7 +125,7 @@
 				</Select.Trigger>
 				<Select.Content>
 					<Select.Group>
-						{#each currencyOptions as [code, { name }]}
+						{#each currencyOptions as [code, { name }] (code)}
 							<Select.Item value={code} label={`${code} - ${name}`} />
 						{/each}
 					</Select.Group>

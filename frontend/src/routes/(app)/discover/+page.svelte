@@ -3,7 +3,7 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import type { Artist, Release } from '$lib/types/generated/models';
-	import Icon from '$lib/components/atoms/Icon.svelte';
+	import Icon from '$lib/components/ui/icon/Icon.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
 
 	type DiscoverRelease = Release & {

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Checkbox as CheckboxPrimitive, type WithoutChildrenOrChild } from 'bits-ui';
 	import { cn } from '$lib/utils/utils.js';
-	import Icon from '$lib/components/atoms/Icon.svelte';
+	import Icon from '$lib/components/ui/icon/Icon.svelte';
 
 	let {
 		ref = $bindable(null),

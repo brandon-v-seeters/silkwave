@@ -2,10 +2,10 @@
 	import { browser } from '$app/environment';
 	import { resolve } from '$app/paths';
 	import { onDestroy } from 'svelte';
-	import { MediaPlayer } from '$lib/components/organisms/media-player';
+	import { MediaPlayer } from '$lib/features/playback';
 	import Button from '$lib/components/ui/button/button.svelte';
-	import { cart } from '$lib/stores/cart';
-	import type { MediaPlayerTrack } from '$lib/components/organisms/media-player';
+	import { cart } from '$lib/features/cart';
+	import type { MediaPlayerTrack } from '$lib/features/playback';
 	import type { Track } from '$lib/types/generated/models.js';
 	import {
 		ArrowLeft,

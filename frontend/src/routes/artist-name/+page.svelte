@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import Icon from '$lib/components/atoms/Icon.svelte';
-	import FormErrors from '$lib/components/atoms/form/FormErrors.svelte';
+	import Icon from '$lib/components/ui/icon/Icon.svelte';
+	import FormErrors from '$lib/components/ui/form/form-errors.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import * as Form from '$lib/components/ui/form/index';
 	import Input from '$lib/components/ui/input/input.svelte';

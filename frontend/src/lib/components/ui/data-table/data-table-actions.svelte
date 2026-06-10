@@ -1,7 +1,7 @@
 <script lang="ts">
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
-	import Icon from '$lib/components/atoms/Icon.svelte';
+	import Icon from '$lib/components/ui/icon/Icon.svelte';
 	import type { IconKey } from '$lib/types/Icon';
 
 	type Action = {
@@ -29,7 +29,7 @@
 			{/snippet}
 		</DropdownMenu.Trigger>
 		<DropdownMenu.Content align="end">
-			{#each actions as action}
+			{#each actions as action (action.label)}
 				<DropdownMenu.Item
 					onclick={action.onclick}
 					class={action.variant === 'destructive' ? 'text-destructive-foreground' : ''}

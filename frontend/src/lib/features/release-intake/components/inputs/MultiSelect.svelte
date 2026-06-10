@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Icon from '$lib/components/atoms/Icon.svelte';
+	import Icon from '$lib/components/ui/icon/Icon.svelte';
 
 	interface Props {
 		/** Currently selected values */
@@ -127,7 +127,7 @@
 	>
 		<div class="flex flex-1 flex-wrap items-center gap-2">
 			{#if selected.length > 0}
-				{#each selected as item}
+					{#each selected as item (item)}
 					<span
 						class="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-foreground/20 to-foreground/10 px-3 py-1 text-sm text-foreground"
 					>
@@ -176,7 +176,7 @@
 			<!-- Options List -->
 			<div class="max-h-48 overflow-y-auto">
 				{#if filteredOptions.length > 0}
-					{#each filteredOptions as option}
+						{#each filteredOptions as option (option)}
 						<button
 							type="button"
 							onclick={() => addItem(option)}

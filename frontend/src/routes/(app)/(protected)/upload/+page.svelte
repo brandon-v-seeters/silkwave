@@ -4,7 +4,7 @@
 	import { superForm } from 'sveltekit-superforms';
 
 	// Components
-	import Icon from '$lib/components/atoms/Icon.svelte';
+	import Icon from '$lib/components/ui/icon/Icon.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import DataTable from '$lib/components/ui/data-table/data-table.svelte';
 	import { columns } from './drafts/columns';
@@ -16,7 +16,7 @@
 	// Types
 	import type { AppUser } from '$lib/types/generated';
 	import { page } from '$app/state';
-	import FormErrors from '$lib/components/atoms/form/FormErrors.svelte';
+	import FormErrors from '$lib/components/ui/form/form-errors.svelte';
 
 	const userCtx = getContext<{ current: AppUser }>('user');
 	const user = $derived(userCtx.current);

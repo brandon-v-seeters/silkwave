@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import Link from '$lib/components/atoms/Link.svelte';
-	import SocialAuth from '$lib/components/molecules/SocialAuth.svelte';
-	import UserAuthForm from '$lib/components/organisms/UserAuthForm.svelte';
+	import Link from '$lib/components/ui/link/Link.svelte';
+	import { SocialAuth, UserAuthForm } from '$lib/features/account';
 	import { Button } from '$lib/components/ui/button/index.js';
 
 	const redirectTo = page.data.redirectTo;

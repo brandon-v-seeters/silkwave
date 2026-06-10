@@ -1,6 +1,7 @@
 <script lang="ts">
-	import Icon from '$lib/components/atoms/Icon.svelte';
+	import Icon from '$lib/components/ui/icon/Icon.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
+	import { resolve } from '$app/paths';
 	import { getWizardContext } from './wizard.svelte';
 
 	type Props = {
@@ -21,7 +22,7 @@
 </script>
 
 {#if showCancel}
-	<Button variant="ghost" href="/upload" class="gap-1 px-2 md:gap-2 md:px-4">
+		<Button variant="ghost" href={resolve('/upload')} class="gap-1 px-2 md:gap-2 md:px-4">
 		<Icon icon="chevron-left" variant="line" class="h-4 w-4 fill-foreground md:h-5 md:w-5" />
 		<span class="hidden sm:inline">Cancel</span>
 	</Button>

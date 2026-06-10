@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { tick } from 'svelte';
-	import Icon from '$lib/components/atoms/Icon.svelte';
+	import Icon from '$lib/components/ui/icon/Icon.svelte';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import type { WizardTrack } from '$lib/features/release-intake/types';
 
