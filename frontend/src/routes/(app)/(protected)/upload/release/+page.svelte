@@ -1,103 +1,160 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import Icon from '$lib/components/atoms/Icon.svelte';
-	import { ReleaseCoverArt, ReleaseTrackList } from '$lib/components/organisms/release-editor';
-	import { createWizardContext } from '$lib/components/organisms/release-wizard';
+	import {
+		createWizardContext,
+		ReleaseCoverArt,
+		ReleaseTrackList,
+		type WizardTrack
+	} from '$lib/features/release-intake';
 	import Button from '$lib/components/ui/button/button.svelte';
 
 	const wizard = createWizardContext();
 
 	const { data } = $props();
+	let previewAudio: HTMLAudioElement | null = null;
+	let previewUrl: string | null = null;
 
 	onMount(() => {
+		previewAudio = new Audio();
+
 		if (data.draft) {
 			wizard.initWizard(data.draft);
 		}
+
+		return () => {
+			previewAudio?.pause();
+			if (previewUrl) {
+				URL.revokeObjectURL(previewUrl);
+			}
+		};
 	});
 
-	let totalDuration = $derived(() => {
+	let totalDuration = $derived.by(() => {
 		let totalSeconds = 0;
 		for (const track of wizard.tracks) {
-			const parts = track.duration?.split(':') ?? ['0', '00'];
-			totalSeconds += parseInt(parts[0]) * 60 + parseInt(parts[1]);
+			const [minutes = '0', seconds = '0'] = track.duration?.split(':') ?? [];
+			totalSeconds += (Number.parseInt(minutes, 10) || 0) * 60;
+			totalSeconds += Number.parseInt(seconds, 10) || 0;
 		}
 		const m = Math.floor(totalSeconds / 60);
 		const s = totalSeconds % 60;
 		return m > 0 ? `${m}m ${s}s` : `${s}s`;
 	});
+
+	let trackSummary = $derived(
+		wizard.tracks.length > 0
+			? `${wizard.tracks.length} ${wizard.tracks.length === 1 ? 'track' : 'tracks'}`
+			: 'No tracks yet'
+	);
+
+	let releaseState = $derived(wizard.isFormValid ? 'Ready' : 'Draft');
+
+	function playTrack(track: WizardTrack) {
+		if (!track.file || track.file.size === 0 || !previewAudio) return;
+
+		previewAudio.pause();
+
+		if (previewUrl) {
+			URL.revokeObjectURL(previewUrl);
+		}
+
+		previewUrl = URL.createObjectURL(track.file);
+		previewAudio.src = previewUrl;
+		void previewAudio.play().catch(() => {});
+	}
 </script>
 
-<div class="relative sm:block sm:pt-8">
-	<!-- Header actions -->
-	<div class="flex items-center justify-between px-6 py-4 sm:px-16 sm:py-6">
+<svelte:head>
+	<title>New release - Silkwave</title>
+</svelte:head>
+
+<div class="mx-auto flex w-full max-w-6xl flex-col gap-7 pb-10">
+	<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 		<Button
-			variant="secondary"
-			size="icon"
-			class="h-11 w-11 shrink-0 rounded-2xl"
-			onclick={() => goto('/upload')}
+			href={resolve('/upload')}
+			variant="ghost"
+			size="sm"
+			class="w-fit rounded-full px-2 text-sm text-muted-foreground hover:text-foreground"
 		>
-			<Icon icon="chevron-left" variant="line" class="h-4 w-4 fill-foreground" />
+			<Icon icon="chevron-left" variant="line" class="h-4 w-4 fill-current" />
+			Upload
 		</Button>
 
-		<div class="flex gap-2">
+		<div class="flex w-full gap-2 sm:w-auto">
 			<Button
 				variant="secondary"
-				class="rounded-2xl"
+				class="min-w-0 flex-1 rounded-full px-4 sm:flex-none"
 				onclick={() => wizard.saveAsDraft()}
 				disabled={wizard.isUploading}
 			>
-				Save Draft
+				<Icon icon="file-text" variant="line" class="h-4 w-4 fill-current" />
+				Save draft
 			</Button>
 			<Button
 				variant="primary"
-				class="rounded-2xl"
+				class="min-w-0 flex-1 rounded-full px-5 sm:flex-none"
 				onclick={() => wizard.publishRelease()}
 				disabled={!wizard.isFormValid || wizard.isUploading}
 			>
+				<Icon icon="check-circle" variant="line" class="h-4 w-4 fill-current" />
 				Publish
 			</Button>
 		</div>
 	</div>
 
-	<div
-		class="flex flex-col w-fit mx-auto lg:flex-row items-center lg:items-start gap-4 px-6 sm:gap-12 sm:px-16 sm:pt-0"
-	>
-		<div class="flex w-full flex-col items-center gap-6 sm:w-[320px] lg:w-[405px]">
+	<div class="grid min-w-0 gap-8 lg:grid-cols-[minmax(15rem,24rem)_minmax(0,1fr)] xl:gap-12">
+		<aside class="min-w-0 space-y-4">
 			<ReleaseCoverArt
 				bind:preview={wizard.coverArtPreview}
 				onchange={(file) => wizard.setCoverArt(file)}
 			/>
-		</div>
 
-		<!-- Right column: Title + Tracks -->
-		<div class="w-full pb-24 md:max-w-xl">
-			<div class="flex flex-col gap-4">
-				<!-- Title + meta + preview -->
-				<div class="flex items-start gap-3">
-					<div class="flex min-w-0 flex-1 flex-col">
+			<div class="rounded-2xl border border-border/60 bg-muted/25 p-4 shadow-sm">
+				<div class="grid grid-cols-2 gap-4 text-sm">
+					<div class="min-w-0">
+						<p class="text-xs font-medium text-muted-foreground">State</p>
+						<p class="mt-1 truncate font-semibold text-foreground">{releaseState}</p>
+					</div>
+					<div class="min-w-0">
+						<p class="text-xs font-medium text-muted-foreground">Length</p>
+						<p class="mt-1 truncate font-semibold text-foreground">{totalDuration}</p>
+					</div>
+				</div>
+			</div>
+		</aside>
+
+		<section class="min-w-0 space-y-7">
+			<div class="border-b border-border/70 pb-6">
+				<p class="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+					New release
+				</p>
+
+				<div class="mt-4 flex items-start gap-3 sm:gap-5">
+					<div class="min-w-0 flex-1">
 						<input
 							type="text"
+							aria-label="Release title"
 							placeholder="untitled project"
 							bind:value={wizard.releaseTitle}
-							class="w-full bg-transparent text-3xl font-medium tracking-tight text-foreground placeholder:text-foreground-muted/40 focus:outline-none sm:text-4xl"
+							class="w-full bg-transparent font-serif text-4xl font-light leading-none tracking-tight text-foreground placeholder:text-muted-foreground/35 focus:outline-none sm:text-5xl"
 						/>
-						<div class="mt-1 flex items-center gap-1.5 text-sm text-foreground-muted">
+
+						<div
+							class="mt-4 flex flex-wrap items-center gap-2 text-sm text-muted-foreground"
+						>
+							<span>{trackSummary}</span>
 							{#if wizard.tracks.length > 0}
-								<span>
-									{wizard.tracks.length}
-									{wizard.tracks.length === 1 ? 'track' : 'tracks'}
-								</span>
-								<span aria-hidden="true">·</span>
-								<span>{totalDuration()}</span>
-							{:else}
-								<span>No tracks yet</span>
+								<span aria-hidden="true" class="text-border">/</span>
+								<span>{totalDuration}</span>
 							{/if}
 						</div>
 					</div>
+
 					<Button
 						size="icon"
-						class="h-11 w-11 shrink-0 rounded-2xl"
+						class="mt-1 !h-11 !w-11 shrink-0 rounded-full"
 						disabled={wizard.tracks.length === 0}
 						aria-label="Preview release"
 					>
@@ -108,16 +165,25 @@
 						/>
 					</Button>
 				</div>
+			</div>
 
-				<!-- Track list with add button -->
+			<div class="space-y-4">
+				<div class="flex items-end justify-between gap-4">
+					<div>
+						<h2 class="text-xl font-semibold tracking-tight text-foreground">Tracks</h2>
+						<p class="mt-1 text-sm text-muted-foreground">{trackSummary}</p>
+					</div>
+				</div>
+
 				<ReleaseTrackList
 					tracks={wizard.tracks}
 					onfiles={(files) => wizard.addBulkTracks(files)}
 					onTitleChange={(id, title) => wizard.updateTrackTitle(id, title)}
 					onRemove={(id) => wizard.removeTrack(id)}
 					onMove={(index, direction) => wizard.moveTrack(index, direction)}
+					onPlay={playTrack}
 				/>
 			</div>
-		</div>
+		</section>
 	</div>
 </div>

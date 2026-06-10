@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Icon from '$lib/components/atoms/Icon.svelte';
-	import type { WizardTrack } from '$lib/types/WizardTrack';
+	import type { WizardTrack } from '$lib/features/release-intake/types';
 	import ReleaseTrackItem from './ReleaseTrackItem.svelte';
 
 	interface Props {
@@ -9,9 +9,10 @@
 		onTitleChange?: (id: string, title: string) => void;
 		onRemove?: (id: string) => void;
 		onMove?: (index: number, direction: 'up' | 'down') => void;
+		onPlay?: (track: WizardTrack) => void;
 	}
 
-	let { tracks, onfiles, onTitleChange, onRemove, onMove }: Props = $props();
+	let { tracks, onfiles, onTitleChange, onRemove, onMove, onPlay }: Props = $props();
 
 	const openFilePicker = () => {
 		const input = document.createElement('input');
@@ -51,9 +52,11 @@
 					{track}
 					{index}
 					total={tracks.length}
+					canPlay={Boolean(track.file && track.file.size > 0)}
 					onTitleChange={(title) => onTitleChange?.(track.id, title)}
 					onRemove={() => onRemove?.(track.id)}
 					onMove={onMove ? (direction) => onMove?.(index, direction) : undefined}
+					onPlay={onPlay ? () => onPlay(track) : undefined}
 				/>
 			{/each}
 		</ul>

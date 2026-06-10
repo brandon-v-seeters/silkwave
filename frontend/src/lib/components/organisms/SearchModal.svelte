@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import * as Dialog from '$lib/components/ui/dialog/index';
 	import type { IconKey } from '$lib/types/Icon';
 	import type { Artist, Release, ReleaseWithArtist } from '$lib/types/generated/models';
@@ -53,7 +54,7 @@
 
 	function handleSearch() {
 		if (trimmedQuery) {
-			goto(`/discover?q=${encodeURIComponent(trimmedQuery)}`);
+			goto(`${resolve('/discover')}?q=${encodeURIComponent(trimmedQuery)}`);
 			open = false;
 		}
 	}
@@ -86,12 +87,6 @@
 			release.assets?.coverArt?.thumbnail ||
 			null
 		);
-	}
-
-	function releaseHref(release: ReleaseResult) {
-		if (!release.artist?.slug || !release.slug) return null;
-
-		return `/artist/${release.artist.slug}/releases/${release.slug}`;
 	}
 
 	function releaseKind(release: ReleaseResult) {
@@ -287,10 +282,11 @@
 							<div class="space-y-2">
 								{#each releases as release (resultKey(release))}
 									{@const coverArt = coverArtFor(release)}
-									{@const href = releaseHref(release)}
-									{#if href}
+									{#if release.slug}
 										<a
-											{href}
+											href={resolve('/(app)/release/[releaseSlug]', {
+												releaseSlug: release.slug
+											})}
 											onclick={() => (open = false)}
 											class="group flex w-full items-center gap-3 rounded-lg border border-border bg-background p-3 text-left transition-colors hover:bg-accent"
 										>

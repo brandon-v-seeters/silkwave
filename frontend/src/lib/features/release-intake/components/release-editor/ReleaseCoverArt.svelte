@@ -48,9 +48,8 @@
 
 <div class="relative w-full">
 	<!-- Cover art -->
-	<!-- svelte-ignore a11y_no_static_element_interactions -->
 	<div
-		class="group relative z-10 aspect-square w-full cursor-pointer overflow-hidden rounded-2xl shadow-lg transition-transform duration-300"
+		class="group relative z-10 aspect-square w-full cursor-pointer overflow-hidden rounded-2xl transition-transform duration-300"
 		style="will-change: transform;"
 		ondragover={(e) => e.preventDefault()}
 		ondrop={handleDrop}

@@ -13,12 +13,22 @@ var ErrNotUnique = errors.New("release slug already exists for artist")
 
 type ReleaseStore interface {
 	GetPublishedByArtistSlugAndReleaseSlug(ctx context.Context, artistSlug, releaseSlug string) (*models.PublicRelease, error)
+	GetPublishedByReleaseSlug(ctx context.Context, releaseSlug string) (*models.PublicRelease, error)
 	GetReleaseById(ctx context.Context, releaseID string) (*models.Release, error)
 	ReleaseSlugExists(ctx context.Context, artistKey, value string) (bool, error)
 }
 
 func ResolveRelease(ctx context.Context, store ReleaseStore, artistSlug, releaseSlug string) (*models.PublicRelease, error) {
 	release, err := store.GetPublishedByArtistSlugAndReleaseSlug(ctx, artistSlug, releaseSlug)
+	if err != nil {
+		return nil, fmt.Errorf("resolve release slug: %w", err)
+	}
+
+	return release, nil
+}
+
+func ResolveReleaseBySlug(ctx context.Context, store ReleaseStore, releaseSlug string) (*models.PublicRelease, error) {
+	release, err := store.GetPublishedByReleaseSlug(ctx, releaseSlug)
 	if err != nil {
 		return nil, fmt.Errorf("resolve release slug: %w", err)
 	}

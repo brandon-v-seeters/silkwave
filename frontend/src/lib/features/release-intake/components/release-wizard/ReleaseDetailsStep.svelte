@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
-	import MultiSelect from '$lib/components/molecules/MultiSelect.svelte';
+	import MultiSelect from '../inputs/MultiSelect.svelte';
 	import { getWizardContext } from './wizard.svelte';
 	import Textarea from '$lib/components/ui/textarea/textarea.svelte';
 

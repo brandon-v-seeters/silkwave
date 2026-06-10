@@ -5,7 +5,7 @@
 	};
 
 	const routeTrails: Record<string, BreadcrumbItem[]> = {
-		'/': [{ label: 'Artists' }, { label: 'Featured Releases' }],
+		'/': [{ label: 'Featured Releases' }],
 		'/settings': [{ label: 'Account' }, { label: 'Settings' }],
 		'/upload': [{ label: 'Artist Studio' }, { label: 'Upload Music' }],
 		'/upload/drafts': [
@@ -55,6 +55,14 @@
 
 		const segments = url.pathname.split('/').filter(Boolean);
 		if (segments.length === 0) return routeTrails['/'];
+
+		if (segments[0] === 'artist' && segments.length === 2) {
+			return [{ label: 'Artists', href: '/' }, { label: titleCase(segments[1]) }];
+		}
+
+		if (segments[0] === 'release' && segments.length === 2) {
+			return [{ label: 'Featured Releases', href: '/' }, { label: titleCase(segments[1]) }];
+		}
 
 		return [
 			{ label: 'Artists', href: '/' },

@@ -218,7 +218,7 @@ func (s Summary) String() string {
 
 	builder.WriteString("\nPrimary URLs:\n")
 	builder.WriteString("Artist: /artist/framer\n")
-	builder.WriteString("Release: /artist/framer/releases/moon-in-my-sky\n")
+	builder.WriteString("Release: /release/moon-in-my-sky\n")
 	builder.WriteString("Drafts: /upload/drafts\n")
 
 	if len(s.Deleted) > 0 {

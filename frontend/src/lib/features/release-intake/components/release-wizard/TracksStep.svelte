@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Label } from '$lib/components/ui/label/index.js';
-	import AudioDropzone from '$lib/components/molecules/AudioDropzone.svelte';
-	import TrackList from '$lib/components/molecules/TrackList.svelte';
+	import AudioDropzone from '../inputs/AudioDropzone.svelte';
+	import TrackList from '../inputs/TrackList.svelte';
 	import { getWizardContext } from './wizard.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import Icon from '$lib/components/atoms/Icon.svelte';

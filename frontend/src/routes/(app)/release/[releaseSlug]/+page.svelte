@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { resolve } from '$app/paths';
+	import { onDestroy } from 'svelte';
 	import { MediaPlayer } from '$lib/components/organisms/media-player';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import { cart } from '$lib/stores/cart';
@@ -12,8 +13,10 @@
 		Clock3,
 		Disc3,
 		Download,
+		Heart,
 		ListMusic,
 		Music2,
+		Play,
 		Share2,
 		ShoppingBag
 	} from '@lucide/svelte';
@@ -28,10 +31,11 @@
 		artworkUrl?: string | null;
 	};
 
-	let { data, params }: PageProps = $props();
+	let { data }: PageProps = $props();
+	let previewAudio: HTMLAudioElement | null = null;
 
 	const release = $derived(data.release);
-	const artist = $derived(release.artist ?? data.artist);
+	const artist = $derived(release.artist);
 	const tracks = $derived<TrackWithOptionalSource[]>(
 		(release.tracks ?? []) as TrackWithOptionalSource[]
 	);
@@ -57,7 +61,7 @@
 	const playableTracks = $derived(buildPlayableTracks(sortedTracks));
 	const hasPlayableTracks = $derived(playableTracks.length > 0);
 	const genres = $derived(
-		release.metadata?.genres?.length ? release.metadata.genres : release.genres ?? []
+		release.metadata?.genres?.length ? release.metadata.genres : (release.genres ?? [])
 	);
 	const cartItemId = $derived(`release:${release.id || release._key || release.slug}`);
 	const isInCart = $derived($cart.some((item) => item.id === cartItemId));
@@ -194,6 +198,19 @@
 		toast.success('Added to cart');
 	}
 
+	function playTrack(track: TrackWithOptionalSource) {
+		if (!browser) return;
+
+		const source = resolveTrackSource(track);
+		if (!source) return;
+
+		previewAudio ??= new Audio();
+		previewAudio.pause();
+		previewAudio.src = source;
+		previewAudio.currentTime = 0;
+		void previewAudio.play().catch(() => {});
+	}
+
 	async function shareRelease() {
 		if (!browser) return;
 
@@ -217,29 +234,18 @@
 			toast.error('Could not share this release');
 		}
 	}
+
+	onDestroy(() => {
+		previewAudio?.pause();
+	});
 </script>
 
 <svelte:head>
 	<title>{release.title} by {artist?.name ?? 'Silkwave'} - Silkwave</title>
-	<meta
-		name="description"
-		content={release.description || `${release.title} on Silkwave`}
-	/>
+	<meta name="description" content={release.description || `${release.title} on Silkwave`} />
 </svelte:head>
 
 <article class="pb-32">
-	<div class="mb-10">
-		<a
-			href={resolve('/artist/[artistSlug]', {
-				artistSlug: artist?.slug ?? params.artistSlug
-			})}
-			class="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition hover:text-foreground"
-		>
-			<ArrowLeft class="h-4 w-4" aria-hidden="true" />
-			<span>{artist?.name ?? 'Back to artist'}</span>
-		</a>
-	</div>
-
 	<section
 		class="grid gap-10 lg:grid-cols-[minmax(240px,360px)_minmax(0,1fr)] lg:items-end lg:gap-16"
 	>
@@ -248,77 +254,29 @@
 				{#if coverArt}
 					<img
 						src={coverArt}
-						alt=""
-						class="absolute -inset-8 -z-10 h-[calc(100%+4rem)] w-[calc(100%+4rem)] object-cover opacity-[0.18] blur-2xl saturate-125"
-						aria-hidden="true"
+						alt="{release.title} cover art"
+						class="h-full w-full object-cover"
 					/>
-				{/if}
-				{#if coverArt}
-					<img src={coverArt} alt="{release.title} cover art" class="h-full w-full object-cover" />
 				{:else}
-					<div class="flex h-full w-full items-center justify-center bg-muted text-muted-foreground">
+					<div
+						class="flex h-full w-full items-center justify-center bg-muted text-muted-foreground"
+					>
 						<Music2 class="h-16 w-16" aria-hidden="true" />
 					</div>
 				{/if}
 			</div>
-
-			<dl class="mt-6 space-y-3 text-sm">
-				<div class="flex items-start justify-between gap-4">
-					<dt class="flex items-center gap-2 text-muted-foreground">
-						<Disc3 class="h-4 w-4" aria-hidden="true" />
-						Type
-					</dt>
-					<dd class="font-medium">{releaseType}</dd>
-				</div>
-				{#if publishDate}
-					<div class="flex items-start justify-between gap-4">
-						<dt class="flex items-center gap-2 text-muted-foreground">
-							<CalendarDays class="h-4 w-4" aria-hidden="true" />
-							Released
-						</dt>
-						<dd class="text-right font-medium">{publishDate}</dd>
-					</div>
-				{/if}
-				{#if totalDuration}
-					<div class="flex items-start justify-between gap-4">
-						<dt class="flex items-center gap-2 text-muted-foreground">
-							<Clock3 class="h-4 w-4" aria-hidden="true" />
-							Length
-						</dt>
-						<dd class="font-medium">{formatTotalDuration(totalDuration)}</dd>
-					</div>
-				{/if}
-				<div class="flex items-start justify-between gap-4">
-					<dt class="flex items-center gap-2 text-muted-foreground">
-						<Download class="h-4 w-4" aria-hidden="true" />
-						Access
-					</dt>
-					<dd class="text-right font-medium">{availabilityLabel}</dd>
-				</div>
-			</dl>
 		</aside>
 
 		<div class="min-w-0">
-			<div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
-				{#each primaryMeta as item, index (`meta-${item}`)}
-					<span>
-						{item}
-					</span>
-					{#if index < primaryMeta.length - 1}
-						<span aria-hidden="true">/</span>
-					{/if}
-				{/each}
-			</div>
-
-			<h1 class="mt-5 max-w-4xl text-balance font-serif text-6xl font-light leading-[0.92] tracking-tight sm:text-7xl lg:text-8xl">
+			<h1
+				class="mt-5 max-w-4xl text-balance font-serif text-6xl font-bold leading-[0.92] tracking-tight sm:text-7xl lg:text-8xl"
+			>
 				{release.title}
 			</h1>
 
-			{#if artist}
+			{#if artist?.slug}
 				<a
-					href={resolve('/artist/[artistSlug]', {
-						artistSlug: artist?.slug ?? params.artistSlug
-					})}
+					href={resolve('/(app)/artist/[artistSlug]', { artistSlug: artist.slug })}
 					class="mt-5 inline-flex max-w-full items-center gap-3 text-base font-medium text-muted-foreground transition hover:text-primary"
 				>
 					<span
@@ -329,42 +287,67 @@
 					</span>
 					<span class="min-w-0 truncate">{artist.name}</span>
 				</a>
+			{:else if artist}
+				<div
+					class="mt-5 inline-flex max-w-full items-center gap-3 text-base font-medium text-muted-foreground"
+				>
+					<span
+						class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-card text-sm font-semibold text-card-foreground"
+						aria-hidden="true"
+					>
+						{artist.name?.slice(0, 1).toUpperCase() ?? 'A'}
+					</span>
+					<span class="min-w-0 truncate">{artist.name}</span>
+				</div>
 			{/if}
 
 			<div class="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
 				<Button
-					variant="primary"
-					class="justify-center rounded-md px-6 sm:w-auto"
+					class="justify-center sm:w-auto"
 					disabled={isInCart}
+					size="lg"
 					onclick={addReleaseToCart}
 				>
 					<ShoppingBag class="h-4 w-4" aria-hidden="true" />
 					{buyLabel}
 				</Button>
-
-				{#if hasTracks}
-					<Button href="#tracks" variant="secondary" class="justify-center rounded-md px-5">
-						<ListMusic class="h-4 w-4" aria-hidden="true" />
-						View tracks
-					</Button>
-				{/if}
-
-				<Button variant="ghost" class="justify-center rounded-md px-4" onclick={shareRelease}>
+				<Button
+					variant="ghost"
+					class="justify-center rounded-md px-4"
+					onclick={shareRelease}
+				>
+					<Heart class="h-4 w-4" aria-hidden="true" />
+				</Button>
+				<Button
+					variant="ghost"
+					class="justify-center rounded-md px-4"
+					onclick={shareRelease}
+				>
 					<Share2 class="h-4 w-4" aria-hidden="true" />
-					Share
 				</Button>
 			</div>
 
 			{#if release.description}
-				<p class="mt-9 max-w-2xl whitespace-pre-line text-pretty text-lg leading-8 text-muted-foreground">
+				<p
+					class="mt-9 max-w-2xl whitespace-pre-line text-pretty text-lg leading-8 text-muted-foreground"
+				>
 					{release.description}
 				</p>
 			{/if}
+			<dl class="mt-6 space-y-3 text-sm">
+				{#if publishDate}
+					<div class="flex items-center gap-4">
+						<dd class="text-right font-light text-muted-foreground">{publishDate}</dd>
+					</div>
+				{/if}
+			</dl>
 
 			{#if genres.length}
 				<div class="mt-6 flex flex-wrap gap-2">
 					{#each genres as genre (`genre-${genre}`)}
-						<span class="rounded-md bg-muted px-3 py-1 text-sm text-muted-foreground">
+						<span
+							class="rounded-full leading-0 bg-foreground/5 px-6 py-6 text-sm text-muted-foreground hover:bg-foreground/10 hover:text-foreground transition duration-200 cursor-pointer"
+						>
 							{genre}
 						</span>
 					{/each}
@@ -373,22 +356,18 @@
 		</div>
 	</section>
 
-	<section
-		id="tracks"
-		class="mt-18 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(220px,300px)] lg:gap-14"
-	>
+	<section id="tracks" class="mt-18 grid gap-8 lg:grid-cols-[minmax(0,1fr)] lg:gap-14">
 		<div>
 			<div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
 				<div>
-					<p class="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+					<div class="flex items-end gap-2 text-sm font-medium text-muted-foreground">
 						<ListMusic class="h-4 w-4" aria-hidden="true" />
-						Tracks
-					</p>
-					<h2 class="mt-2 text-3xl font-semibold tracking-tight">Side A to closing note</h2>
+						{trackCount} Tracks
+						<span class="text-xs text-muted-foreground leading-0">
+							{formatTotalDuration(totalDuration)}
+						</span>
+					</div>
 				</div>
-				{#if totalDuration}
-					<p class="text-sm text-muted-foreground">{formatTotalDuration(totalDuration)}</p>
-				{/if}
 			</div>
 
 			{#if hasTracks}
@@ -396,11 +375,36 @@
 					{#if sortedTracks.length}
 						{#each sortedTracks as track, index (track.id || track._key || `${index}-${track.title}`)}
 							{@const source = resolveTrackSource(track)}
-							{@const duration = formatDuration(track.duration, track.durationDisplay)}
-							<li class="group grid grid-cols-[2.25rem_minmax(0,1fr)_auto] items-center gap-3 rounded-md px-2 py-3 transition hover:bg-muted/50 sm:grid-cols-[2.25rem_minmax(0,1fr)_auto_auto] sm:px-3">
-								<span class="text-sm tabular-nums text-muted-foreground">
-									{track.order || index + 1}
-								</span>
+							{@const duration = formatDuration(
+								track.duration,
+								track.durationDisplay
+							)}
+							<li
+								class="group grid grid-cols-[2.25rem_minmax(0,1fr)_auto] items-center gap-3 rounded-md px-2 py-3 transition hover:bg-muted/50 sm:grid-cols-[2.25rem_minmax(0,1fr)_auto_auto] sm:px-3"
+							>
+								<div class="relative flex h-7 items-center">
+									<span
+										class="text-sm tabular-nums text-muted-foreground transition-opacity duration-150 {source
+											? 'group-hover:opacity-0 group-focus-within:opacity-0'
+											: ''}"
+									>
+										{track.order || index + 1}
+									</span>
+
+									{#if source}
+										<button
+											type="button"
+											onclick={() => playTrack(track)}
+											class="absolute -left-1 flex h-7 w-7 items-center justify-center rounded-full text-foreground opacity-0 transition duration-150 hover:bg-foreground/8 focus-visible:bg-foreground/8 focus-visible:opacity-100 focus-visible:outline-none group-hover:opacity-100 group-focus-within:opacity-100"
+											aria-label="Play {track.title}"
+										>
+											<Play
+												class="h-3.5 w-3.5 fill-current"
+												aria-hidden="true"
+											/>
+										</button>
+									{/if}
+								</div>
 								<div class="min-w-0">
 									<p class="truncate font-medium">{track.title}</p>
 									{#if track.isExplicit}
@@ -408,17 +412,20 @@
 									{/if}
 								</div>
 								{#if duration}
-									<span class="text-sm tabular-nums text-muted-foreground">{duration}</span>
+									<span class="text-sm tabular-nums text-muted-foreground"
+										>{duration}</span
+									>
 								{/if}
-								<span class="hidden text-sm text-muted-foreground sm:inline">
-									{source ? 'Preview in player' : 'No preview'}
-								</span>
 							</li>
 						{/each}
 					{:else}
 						{#each trackTitles as title, index (`${index}-${title}`)}
-							<li class="grid grid-cols-[2.25rem_minmax(0,1fr)] items-center gap-3 rounded-md px-2 py-3 transition hover:bg-muted/50 sm:px-3">
-								<span class="text-sm tabular-nums text-muted-foreground">{index + 1}</span>
+							<li
+								class="grid grid-cols-[2.25rem_minmax(0,1fr)] items-center gap-3 rounded-md px-2 py-3 transition hover:bg-muted/50 sm:px-3"
+							>
+								<span class="text-sm tabular-nums text-muted-foreground"
+									>{index + 1}</span
+								>
 								<span class="min-w-0 truncate font-medium">{title}</span>
 							</li>
 						{/each}
@@ -430,49 +437,5 @@
 				</div>
 			{/if}
 		</div>
-
-		<aside class="text-sm">
-			<h2 class="text-base font-semibold tracking-tight">Release notes</h2>
-			<dl class="mt-5 space-y-5">
-				<div>
-					<dt class="text-muted-foreground">Artist</dt>
-					<dd class="mt-1 truncate font-medium">{artist?.name ?? 'Unknown artist'}</dd>
-				</div>
-				<div>
-					<dt class="text-muted-foreground">Availability</dt>
-					<dd class="mt-1 font-medium">{availabilityLabel}</dd>
-				</div>
-				{#if release.metadata?.label}
-					<div>
-						<dt class="text-muted-foreground">Label</dt>
-						<dd class="mt-1 truncate font-medium">{release.metadata.label}</dd>
-					</div>
-				{/if}
-				{#if release.metadata?.catalogNumber}
-					<div>
-						<dt class="text-muted-foreground">Catalog</dt>
-						<dd class="mt-1 truncate font-medium">{release.metadata.catalogNumber}</dd>
-					</div>
-				{/if}
-				{#if release.isExplicit}
-					<div>
-						<dt class="text-muted-foreground">Content</dt>
-						<dd class="mt-1 font-medium">Explicit</dd>
-					</div>
-				{/if}
-			</dl>
-		</aside>
 	</section>
-
-	{#if hasPlayableTracks}
-		<MediaPlayer
-			tracks={playableTracks}
-			initialTrackId={playableTracks[0]?.id}
-			releaseTitle={release.title}
-			artistName={artist?.name}
-			artworkUrl={coverArt}
-			placement="floating"
-			label={`${release.title} media player`}
-		/>
-	{/if}
 </article>

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import ImageDropzone from '$lib/components/molecules/ImageDropzone.svelte';
+	import ImageDropzone from '../inputs/ImageDropzone.svelte';
 	import { getWizardContext } from './wizard.svelte';
 
 	const wizard = getWizardContext();

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Icon from '$lib/components/atoms/Icon.svelte';
 	import TrackListItem from './TrackListItem.svelte';
-	import type { WizardTrack } from '$lib/types/WizardTrack';
+	import type { WizardTrack } from '$lib/features/release-intake/types';
 
 	interface Props {
 		tracks: WizardTrack[];
@@ -41,4 +41,3 @@
 		</p>
 	</div>
 {/if}
-

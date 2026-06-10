@@ -1,15 +1,19 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { onMount } from 'svelte';
 	import type { Release } from '$lib/types/generated/models';
 
-type HeroSlide = {
-	release: Partial<Release> &
-		Pick<Release, 'id' | 'title' | 'slug' | 'artistKey' | 'releaseType' | 'publishAt'> & {
-			artist?: { name: string; slug: string };
-			coverArt?: string;
-		};
-	backgroundImage: string;
-};
+	type HeroSlide = {
+		release: Partial<Release> &
+			Pick<
+				Release,
+				'id' | 'title' | 'slug' | 'artistKey' | 'releaseType' | 'publishAt'
+			> & {
+				artist?: { name: string; slug: string };
+				coverArt?: string;
+			};
+		backgroundImage: string;
+	};
 
 	let currentSlide = $state(0);
 	let autoplayInterval: ReturnType<typeof setInterval> | null = null;
@@ -85,7 +89,7 @@ type HeroSlide = {
 <div
 	class="relative flex h-48 w-full items-center justify-center overflow-hidden rounded-lg sm:h-64 sm:rounded-xl md:h-80 md:rounded-2xl lg:h-96 lg:rounded-3xl"
 >
-	{#each slides as slide, index}
+	{#each slides as slide, index (slide.release.id || slide.release.slug || index)}
 		<div
 			class="absolute inset-0 transition-opacity duration-700 ease-in-out {currentSlide ===
 			index
@@ -107,7 +111,9 @@ type HeroSlide = {
 
 			<!-- Content -->
 			<a
-				href="/{slide.release.artist?.slug || ''}/{slide.release.slug}"
+				href={resolve('/(app)/release/[releaseSlug]', {
+					releaseSlug: slide.release.slug
+				})}
 				class="relative z-10 flex h-full flex-col justify-end p-4 transition-opacity hover:opacity-95 sm:p-6 md:p-8"
 			>
 				<!-- Text Content (Bottom Left) -->
@@ -132,7 +138,7 @@ type HeroSlide = {
 	<!-- Carousel Indicators (Top Right) -->
 	{#if slides.length > 1}
 		<div class="absolute top-3 z-20 mx-auto flex gap-1.5 sm:top-4 sm:gap-2 md:top-6 lg:top-12">
-			{#each slides as _, index}
+			{#each slides as slide, index (slide.release.id || slide.release.slug || index)}
 				<button
 					type="button"
 					onclick={() => goToSlide(index)}

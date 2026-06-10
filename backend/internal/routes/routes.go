@@ -80,6 +80,7 @@ func Setup(db *database.ArangoDB, cfg *config.Config) *gin.Engine {
 
 		// Public routes
 		api.GET("/releases", releaseHandler.GetReleases)
+		api.GET("/release/:releaseSlug", middleware.OptionalAuthMiddleware(jwtService), releaseHandler.GetReleaseBySlug)
 		api.GET("/artists/:artistSlug", artistHandler.GetArtistBySlug)
 		api.GET("/artists/:artistSlug/releases/:releaseSlug", middleware.OptionalAuthMiddleware(jwtService), releaseHandler.GetReleaseByArtistAndSlug)
 

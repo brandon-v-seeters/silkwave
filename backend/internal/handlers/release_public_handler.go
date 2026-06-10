@@ -61,6 +61,24 @@ func (h *ReleaseHandler) GetReleaseByArtistAndSlug(c *gin.Context) {
 	respondOK(c, release, "")
 }
 
+func (h *ReleaseHandler) GetReleaseBySlug(c *gin.Context) {
+	releaseSlug := c.Param("releaseSlug")
+
+	release, err := slug.ResolveReleaseBySlug(c.Request.Context(), h.releases, releaseSlug)
+	if err != nil {
+		respondError(c, http.StatusNotFound, "not_found", "Release not found")
+		return
+	}
+	userKey, _ := middleware.GetUserKey(c)
+	if err := h.attachPublicReleaseURLs(c.Request.Context(), userKey, release); err != nil {
+		logger.Error("failed to attach public release URLs", err, zap.String("releaseId", release.Id))
+		respondError(c, http.StatusInternalServerError, "internal_error", "Failed to load release media")
+		return
+	}
+
+	respondOK(c, release, "")
+}
+
 func (h *ReleaseHandler) attachPublicReleaseURLs(ctx context.Context, userKey string, release *models.PublicRelease) error {
 	if release == nil {
 		return nil

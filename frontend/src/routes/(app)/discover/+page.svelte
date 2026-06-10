@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import type { Artist, Release } from '$lib/types/generated/models';
 	import Icon from '$lib/components/atoms/Icon.svelte';
@@ -86,12 +87,6 @@
 		});
 	}
 
-	function releaseHref(release: DiscoverRelease) {
-		if (!release.artist?.slug) return '#';
-
-		return `/artist/${release.artist.slug}/releases/${release.slug}`;
-	}
-
 	function coverArtFor(release: DiscoverRelease) {
 		return (
 			release.coverArt ||
@@ -159,12 +154,9 @@
 	{:else}
 		<!-- Releases Grid -->
 		<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-			{#each releases as release}
+			{#each releases as release (release.id || release._key || release.slug)}
 				{@const coverArt = coverArtFor(release)}
-				<a
-					href={releaseHref(release)}
-					class="group rounded-lg border border-border bg-card p-4 transition-all hover:border-primary hover:shadow-lg"
-				>
+				{#snippet releaseContent()}
 					<!-- Cover Art Placeholder -->
 					<div class="bg-muted mb-4 aspect-square w-full overflow-hidden rounded-md">
 						{#if coverArt}
@@ -200,7 +192,22 @@
 							<span>{formatDate(release.publishAt)}</span>
 						</div>
 					</div>
-				</a>
+				{/snippet}
+
+				{#if release.slug}
+					<a
+						href={resolve('/(app)/release/[releaseSlug]', {
+							releaseSlug: release.slug
+						})}
+						class="group rounded-lg border border-border bg-card p-4 transition-all hover:border-primary hover:shadow-lg"
+					>
+						{@render releaseContent()}
+					</a>
+				{:else}
+					<div class="group rounded-lg border border-border bg-card p-4">
+						{@render releaseContent()}
+					</div>
+				{/if}
 			{/each}
 		</div>
 	{/if}

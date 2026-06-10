@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Icon from '$lib/components/atoms/Icon.svelte';
 	import { Input } from '$lib/components/ui/input/index.js';
-	import type { WizardTrack } from '$lib/types/WizardTrack';
+	import type { WizardTrack } from '$lib/features/release-intake/types';
 
 	interface Props {
 		track: WizardTrack;

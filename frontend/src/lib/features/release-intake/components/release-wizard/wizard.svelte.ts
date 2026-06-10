@@ -3,7 +3,7 @@ import { getContext, setContext } from 'svelte';
 import { toast } from 'svelte-sonner';
 
 // Types
-import type { WizardTrack } from '$lib/types/WizardTrack';
+import type { WizardTrack } from '$lib/features/release-intake/types';
 
 export type ReleasePricing = {
 	basePrice: number;      // In cents (999 = $9.99)
@@ -12,7 +12,7 @@ export type ReleasePricing = {
 };
 
 // Services
-import { releaseUploadService } from '$lib/services/release-upload.svelte';
+import { releaseUploadService } from '$lib/features/release-intake/release-upload.svelte';
 import type { ReleaseWithTracks } from '$lib/types/generated';
 
 // Helpers

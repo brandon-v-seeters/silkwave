@@ -1,5 +1,5 @@
 import { toast } from 'svelte-sonner';
-import type { WizardTrack, UploadProgress, UploadStatus } from '$lib/types/WizardTrack';
+import type { UploadProgress, UploadStatus, WizardTrack } from '$lib/features/release-intake/types';
 import { readApiData } from '$lib/api/envelope';
 import type { CreateDraftRequest, CreateDraftResponse } from '$lib/types/generated/models';
 import { POST } from '$lib/api/Api';
@@ -19,7 +19,7 @@ const createReleaseUploadService = () => {
         status === 'creating_draft' || status === 'uploading' || status === 'confirming'
     );
 
-    const overallProgress = $derived(() => {
+    const overallProgress = $derived.by(() => {
         if (trackProgress.length === 0) return 0;
         const total = trackProgress.reduce((sum, t) => sum + t.progress, 0);
         const coverProgress = coverArtProgress?.progress ?? 0;

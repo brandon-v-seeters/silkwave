@@ -41,6 +41,40 @@ func (r *ReleaseRepository) GetPublishedByArtistSlugAndReleaseSlug(ctx context.C
 	return release, nil
 }
 
+func (r *ReleaseRepository) GetPublishedByReleaseSlug(ctx context.Context, releaseSlug string) (*models.PublicRelease, error) {
+	q := /*aql*/ `
+		FOR release IN Releases
+			FILTER release.slug == @releaseSlug
+			FILTER release.status == @published
+			FILTER release.publishAt == null OR release.publishAt <= @now
+			LET artist = FIRST(
+				FOR a IN Artists
+					FILTER a._key == release.artistKey
+					RETURN a
+			)
+			LET tracks = (
+				FOR track IN Tracks
+					FILTER track.releaseKey == release._key
+					SORT track.order ASC
+					RETURN track
+			)
+			SORT release.publishAt DESC, release.createdAt DESC
+			LIMIT 1
+			RETURN MERGE(release, { artist: artist, tracks: tracks })
+	`
+
+	release, err := database.QueryOne[models.PublicRelease](ctx, r.db, q, map[string]interface{}{
+		"now":         time.Now(),
+		"published":   string(models.ReleaseStatusPublished),
+		"releaseSlug": releaseSlug,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("get published release by release slug: %w", err)
+	}
+
+	return release, nil
+}
+
 func (r *ReleaseRepository) GetReleaseById(ctx context.Context, releaseId string) (*models.Release, error) {
 	q := /*aql*/ `
 		FOR release IN Releases

@@ -60,6 +60,22 @@ func TestResolveReleaseDelegatesToStore(t *testing.T) {
 	}
 }
 
+func TestResolveReleaseBySlugDelegatesToStore(t *testing.T) {
+	t.Parallel()
+
+	store := &fakeReleaseStore{publicRelease: &models.PublicRelease{Release: models.Release{Id: "release-id"}}}
+	release, err := ResolveReleaseBySlug(context.Background(), store, "release-slug")
+	if err != nil {
+		t.Fatalf("ResolveReleaseBySlug returned error: %v", err)
+	}
+	if release.Id != "release-id" {
+		t.Fatalf("expected release-id, got %q", release.Id)
+	}
+	if store.releaseSlug != "release-slug" {
+		t.Fatalf("store saw %q", store.releaseSlug)
+	}
+}
+
 func TestResolveByIdDelegatesToStore(t *testing.T) {
 	t.Parallel()
 
@@ -86,6 +102,15 @@ type fakeReleaseStore struct {
 
 func (f *fakeReleaseStore) GetPublishedByArtistSlugAndReleaseSlug(ctx context.Context, artistSlug, releaseSlug string) (*models.PublicRelease, error) {
 	f.artistSlug = artistSlug
+	f.releaseSlug = releaseSlug
+	if f.publicRelease == nil {
+		return nil, errSlugStore
+	}
+
+	return f.publicRelease, nil
+}
+
+func (f *fakeReleaseStore) GetPublishedByReleaseSlug(ctx context.Context, releaseSlug string) (*models.PublicRelease, error) {
 	f.releaseSlug = releaseSlug
 	if f.publicRelease == nil {
 		return nil, errSlugStore

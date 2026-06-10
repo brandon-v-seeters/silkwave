@@ -5,7 +5,7 @@ import DataTableButton from "$lib/components/ui/data-table/data-table-button.sve
 import DataTableActions from "$lib/components/ui/data-table/data-table-actions.svelte";
 import type { Release } from "$lib/types/generated";
 import type { ColumnDef } from "@tanstack/table-core";
-import { draftsService } from "$lib/services/drafts";
+import { draftsService } from "$lib/features/release-intake";
 import { goto } from "$app/navigation";
 
 

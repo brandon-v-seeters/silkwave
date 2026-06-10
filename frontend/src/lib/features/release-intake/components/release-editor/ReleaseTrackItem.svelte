@@ -2,18 +2,29 @@
 	import { tick } from 'svelte';
 	import Icon from '$lib/components/atoms/Icon.svelte';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-	import type { WizardTrack } from '$lib/types/WizardTrack';
+	import type { WizardTrack } from '$lib/features/release-intake/types';
 
 	interface Props {
 		track: WizardTrack;
 		index: number;
 		total: number;
+		canPlay?: boolean;
 		onTitleChange?: (title: string) => void;
 		onRemove?: () => void;
 		onMove?: (direction: 'up' | 'down') => void;
+		onPlay?: () => void;
 	}
 
-	let { track, index, total, onTitleChange, onRemove, onMove }: Props = $props();
+	let {
+		track,
+		index,
+		total,
+		canPlay = false,
+		onTitleChange,
+		onRemove,
+		onMove,
+		onPlay
+	}: Props = $props();
 
 	let editing = $state(false);
 	let editValue = $state('');
@@ -40,13 +51,35 @@
 	function cancelEdit() {
 		editing = false;
 	}
+
+	function playTrack(event: MouseEvent) {
+		event.stopPropagation();
+		onPlay?.();
+	}
 </script>
 
 <li
 	class="group/row flex w-full select-none items-center rounded-2xl py-2 transition-colors duration-200 hover:bg-foreground/3 sm:px-3"
 >
-	<div class="mr-2 w-[30px] shrink-0 text-center font-mono text-xs text-foreground-muted/70">
-		<span class="flex items-center justify-center">{String(index + 1).padStart(2, '0')}</span>
+	<div class="relative mr-2 flex w-[30px] shrink-0 items-center justify-center">
+		<span
+			class="flex items-center justify-center font-mono text-xs text-foreground-muted/70 transition-opacity duration-150 {canPlay
+				? 'group-hover/row:opacity-0 group-focus-within/row:opacity-0'
+				: ''}"
+		>
+			{String(index + 1).padStart(2, '0')}
+		</span>
+
+		{#if canPlay}
+			<button
+				type="button"
+				onclick={playTrack}
+				class="absolute flex h-7 w-7 items-center justify-center rounded-full text-foreground opacity-0 transition duration-150 hover:bg-foreground/8 focus-visible:bg-foreground/8 focus-visible:opacity-100 focus-visible:outline-none group-hover/row:opacity-100 group-focus-within/row:opacity-100"
+				aria-label="Play {track.title}"
+			>
+				<Icon icon="play" variant="filled" class="h-3.5 w-3.5 fill-current" />
+			</button>
+		{/if}
 	</div>
 
 	<div class="flex w-full min-w-0 flex-col">

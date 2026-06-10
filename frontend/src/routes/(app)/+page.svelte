@@ -64,30 +64,15 @@
 </svelte:head>
 
 <div class="space-y-8">
-	<div class="mt-4 flex items-center gap-4 overflow-x-auto">
-		<a href={resolve('/')} class="shrink-0 font-semibold text-foreground">New Releases</a>
-		<a
-			href={resolve('/discover')}
-			class="shrink-0 text-muted-foreground transition hover:text-foreground"
-		>
-			News Feed
-		</a>
-		<a
-			href={resolve('/discover?shuffle=true' as '/')}
-			class="shrink-0 text-muted-foreground transition hover:text-foreground"
-		>
-			Shuffle Play
-		</a>
-	</div>
 	<section
-		class="relative isolate overflow-hidden rounded-[1.55rem] px-6 py-7 text-white shadow-[0_18px_50px_rgba(244,116,72,0.25)] sm:min-h-72 sm:px-8 sm:py-8"
+		class="relative isolate overflow-hidden rounded-[1.55rem] px-6 py-7 text-white sm:min-h-72 sm:px-8 sm:py-8"
 	>
 		<div
 			class="absolute inset-y-0 right-0 -z-10 hidden w-[58%] bg-cover bg-center opacity-85 mix-blend-multiply md:block"
-			style="background-image: linear-gradient(90deg, rgba(244,116,72,0), rgba(244,116,72,0.12)), url('/producer.jpg');"
+			style="background-image: url('/producer.jpg');"
 		></div>
 		<div
-			class="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_90%_50%,rgba(255,255,255,0.26),transparent_26%),linear-gradient(90deg,rgba(244,116,72,0.98),rgba(244,116,72,0.84)_44%,rgba(244,116,72,0.2))]"
+			class="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(244,116,72,0.98),rgba(244,116,72,0.84)_44%,rgba(244,116,72,0.2))]"
 		></div>
 
 		<div class="flex h-full max-w-lg flex-col justify-between gap-10">
@@ -135,7 +120,7 @@
 			{#each releaseCards as release (release.title)}
 				<a href={discoverHref} class="group min-w-0">
 					<div
-						class="relative aspect-square overflow-hidden rounded-4xl shadow-[0_16px_34px_rgba(15,23,42,0.1)] transition duration-300 group-hover:-translate-y-1 group-hover:shadow-[0_18px_42px_rgba(15,23,42,0.16)]"
+						class="relative aspect-square overflow-hidden rounded-4xl transition duration-300 group-hover:-translate-y-1"
 						style="background: {release.tint};"
 					>
 						<img

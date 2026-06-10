@@ -108,8 +108,9 @@ go build -o bin/migrate ./cmd/migrate
 | `POST` | `/api/register`            | User registration       |
 | `POST` | `/api/logout`              | User logout             |
 | `GET`  | `/api/releases`            | List published releases |
+| `GET`  | `/api/release/:releaseSlug` | Get release by slug     |
 | `GET`  | `/api/artists/:artistSlug` | Get artist by slug      |
-| `GET`  | `/api/artists/:artistSlug/releases/:releaseSlug` | Get release by Artist and Release slug |
+| `GET`  | `/api/artists/:artistSlug/releases/:releaseSlug` | Get release by artist and release slug |
 
 ### Protected Routes (require JWT)
 
