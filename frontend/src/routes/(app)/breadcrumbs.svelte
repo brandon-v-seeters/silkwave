@@ -64,6 +64,18 @@
 			return [{ label: 'Featured Releases', href: '/' }, { label: titleCase(segments[1]) }];
 		}
 
+		if (
+			segments[0] === 'artists' &&
+			segments.length === 4 &&
+			segments[2] === 'releases'
+		) {
+			return [
+				{ label: 'Artists', href: '/' },
+				{ label: titleCase(segments[1]), href: `/artist/${segments[1]}` },
+				{ label: titleCase(segments[3]) }
+			];
+		}
+
 		return [
 			{ label: 'Artists', href: '/' },
 			...segments.map((segment, index) => {

@@ -3,6 +3,7 @@
 	import {
 		artistRoute,
 		artistRouteParams,
+		hasReleaseRoute,
 		releaseRoute,
 		releaseRouteParams,
 		type CatalogRelease
@@ -13,7 +14,7 @@
 </script>
 
 <div class="flex flex-col gap-2">
-	{#if release.slug}
+	{#if hasReleaseRoute(release)}
 		<a
 			href={resolve(releaseRoute, releaseRouteParams(release))}
 			class="group/image flex aspect-square cursor-pointer flex-col gap-2 overflow-hidden rounded-xl"

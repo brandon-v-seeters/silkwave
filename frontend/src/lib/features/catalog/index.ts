@@ -12,6 +12,7 @@ export {
 	artistRouteParams,
 	coverArtFor,
 	formatReleaseDate,
+	hasReleaseRoute,
 	normalizeCatalogRelease,
 	normalizeCatalogReleases,
 	releaseKey,

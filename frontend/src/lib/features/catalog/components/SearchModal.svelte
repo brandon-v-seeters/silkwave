@@ -8,6 +8,7 @@
 	import Input from '$lib/components/ui/input/input.svelte';
 	import {
 		fetchCatalogReleases,
+		hasReleaseRoute,
 		releaseRoute,
 		releaseRouteParams,
 		type CatalogRelease
@@ -220,7 +221,7 @@
 							<div class="space-y-2">
 								{#each releases as release (release.key)}
 									{@const coverArt = release.coverArtUrl}
-									{#if release.slug}
+									{#if hasReleaseRoute(release)}
 										<a
 											href={resolve(releaseRoute, releaseRouteParams(release))}
 											onclick={() => (open = false)}

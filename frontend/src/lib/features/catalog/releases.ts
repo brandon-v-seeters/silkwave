@@ -19,7 +19,11 @@ export type CatalogRelease = FlatCatalogRelease & {
 };
 
 export const artistRoute = '/(app)/artist/[artistSlug]';
-export const releaseRoute = '/(app)/release/[releaseSlug]';
+export const releaseRoute = '/(app)/artists/[artistSlug]/releases/[releaseSlug]';
+
+type LinkableRelease = Pick<FlatCatalogRelease, 'slug'> & {
+	artist: CatalogArtist;
+};
 
 function hasNestedRelease(row: CatalogReleaseRow): row is ReleaseWithArtist {
 	return 'Release' in row;
@@ -53,8 +57,17 @@ export function releaseKey(release: FlatCatalogRelease) {
 	return release.id || release._key || `${release.artist?.slug ?? 'artist'}-${release.slug}`;
 }
 
-export function releaseRouteParams(release: Pick<FlatCatalogRelease, 'slug'>) {
-	return { releaseSlug: release.slug };
+export function hasReleaseRoute(
+	release: Pick<FlatCatalogRelease, 'slug'> & { artist?: CatalogArtist }
+): release is LinkableRelease {
+	return Boolean(release.slug && release.artist?.slug);
+}
+
+export function releaseRouteParams(release: LinkableRelease) {
+	return {
+		artistSlug: release.artist.slug,
+		releaseSlug: release.slug
+	};
 }
 
 export function artistRouteParams(artist: CatalogArtist) {

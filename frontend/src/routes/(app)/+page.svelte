@@ -2,7 +2,12 @@
 	import Icon from '$lib/components/ui/icon/Icon.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
 	import { resolve } from '$app/paths';
-	import { ReleaseCard, releaseRoute, releaseRouteParams } from '$lib/features/catalog';
+	import {
+		hasReleaseRoute,
+		ReleaseCard,
+		releaseRoute,
+		releaseRouteParams
+	} from '$lib/features/catalog';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
@@ -40,7 +45,7 @@
 				</div>
 
 				<div class="flex flex-wrap items-center gap-3">
-					{#if featuredRelease.slug}
+					{#if hasReleaseRoute(featuredRelease)}
 						<Button
 							href={resolve(releaseRoute, releaseRouteParams(featuredRelease))}
 							variant="primary"
@@ -55,10 +60,15 @@
 				</div>
 			</div>
 
-			<a
-				href={resolve(releaseRoute, releaseRouteParams(featuredRelease))}
+			<svelte:element
+				this={hasReleaseRoute(featuredRelease) ? 'a' : 'div'}
+				href={hasReleaseRoute(featuredRelease)
+					? resolve(releaseRoute, releaseRouteParams(featuredRelease))
+					: undefined}
 				class="group relative min-h-72 overflow-hidden bg-foreground/5 md:min-h-full"
-				aria-label="Open {featuredRelease.title}"
+				aria-label={hasReleaseRoute(featuredRelease)
+					? `Open ${featuredRelease.title}`
+					: undefined}
 			>
 				{#if featuredRelease.coverArtUrl}
 					<img
@@ -71,7 +81,7 @@
 						<Icon icon="music-note-2" class="h-12 w-12 fill-current" />
 					</div>
 				{/if}
-			</a>
+			</svelte:element>
 		</section>
 	{:else}
 		<section class="rounded-3xl bg-muted/35 p-8">

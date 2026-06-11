@@ -4,6 +4,7 @@
 	import { page } from '$app/state';
 	import {
 		fetchCatalogReleases,
+		hasReleaseRoute,
 		releaseRoute,
 		releaseRouteParams,
 		type CatalogRelease
@@ -150,7 +151,7 @@
 					</div>
 				{/snippet}
 
-				{#if release.slug}
+				{#if hasReleaseRoute(release)}
 					<a
 						href={resolve(releaseRoute, releaseRouteParams(release))}
 						class="group rounded-lg border border-border bg-card p-4 transition-all hover:border-primary hover:shadow-lg"
